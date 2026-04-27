@@ -38,10 +38,10 @@ func TestCephBuildMount(t *testing.T) {
 			modernMountSyntax: true,
 			wantSource:        "admin@abc-def-123.myfs=/",
 			wantOptions: []string{
-				"mon_addr=10.0.0.1:3300",
 				"name=admin",
 				"secret=AQBxyz==",
 				"ms_mode=prefer-secure",
+				"mon_addr=10.0.0.1:3300",
 			},
 		},
 		{
@@ -58,10 +58,10 @@ func TestCephBuildMount(t *testing.T) {
 			modernMountSyntax: true,
 			wantSource:        "admin@abc-def-123.myfs=/subdir",
 			wantOptions: []string{
-				"mon_addr=10.0.0.1:6789/10.0.0.2:6789",
 				"name=admin",
 				"secret=AQBxyz==",
 				"ms_mode=prefer-secure",
+				"mon_addr=10.0.0.1:6789/10.0.0.2:6789",
 			},
 		},
 		{
@@ -78,12 +78,10 @@ func TestCephBuildMount(t *testing.T) {
 			modernMountSyntax: false,
 			wantSource:        "10.0.0.1:6789,10.0.0.2:6789:/subdir",
 			wantOptions: []string{
-				"mon_addr=10.0.0.1:6789/10.0.0.2:6789",
 				"name=admin",
 				"secret=AQBxyz==",
 				"ms_mode=prefer-secure",
 				"mds_namespace=myfs",
-				"fsid=abc-def-123",
 			},
 		},
 		{
@@ -101,10 +99,10 @@ func TestCephBuildMount(t *testing.T) {
 			modernMountSyntax: true,
 			wantSource:        "client1@uuid-456.cephfs=/data/pool",
 			wantOptions: []string{
-				"mon_addr=10.0.0.1:3300/10.0.0.2:3300/10.0.0.3:3300",
 				"name=client1",
 				"secret=secret123",
 				"ms_mode=prefer-secure",
+				"mon_addr=10.0.0.1:3300/10.0.0.2:3300/10.0.0.3:3300",
 			},
 		},
 		{
@@ -121,9 +119,9 @@ func TestCephBuildMount(t *testing.T) {
 			modernMountSyntax: true,
 			wantSource:        "admin@abc-def-123.myfs=/",
 			wantOptions: []string{
-				"mon_addr=10.0.0.1:3300",
 				"name=admin",
 				"ms_mode=prefer-secure",
+				"mon_addr=10.0.0.1:3300",
 			},
 		},
 		{
@@ -140,10 +138,10 @@ func TestCephBuildMount(t *testing.T) {
 			modernMountSyntax: true,
 			wantSource:        "admin@abc-def-123.myfs=/subdir",
 			wantOptions: []string{
-				"mon_addr=10.0.0.1:6789",
 				"name=admin",
 				"secret=AQBxyz==",
 				"ms_mode=prefer-secure",
+				"mon_addr=10.0.0.1:6789",
 			},
 		},
 		{
@@ -160,10 +158,10 @@ func TestCephBuildMount(t *testing.T) {
 			modernMountSyntax: true,
 			wantSource:        "admin@abc-def-123.myfs=/",
 			wantOptions: []string{
-				"mon_addr=10.0.0.1:6789",
 				"name=admin",
 				"secret=AQBxyz==",
 				"ms_mode=prefer-secure",
+				"mon_addr=10.0.0.1:6789",
 			},
 		},
 		{
@@ -180,10 +178,10 @@ func TestCephBuildMount(t *testing.T) {
 			modernMountSyntax: true,
 			wantSource:        "admin@abc-def-123.myfs=/",
 			wantOptions: []string{
-				"mon_addr=10.0.0.1:3300",
 				"name=admin",
 				"secret=AQBxyz==",
 				"ms_mode=secure",
+				"mon_addr=10.0.0.1:3300",
 			},
 		},
 		{
@@ -200,10 +198,108 @@ func TestCephBuildMount(t *testing.T) {
 			modernMountSyntax: true,
 			wantSource:        "admin@abc-def-123.myfs=/",
 			wantOptions: []string{
-				"mon_addr=10.0.0.1:3300",
 				"name=admin",
 				"secret=AQBxyz==",
 				"ms_mode=prefer-crc",
+				"mon_addr=10.0.0.1:3300",
+			},
+		},
+		{
+			name: "Empty fsName (legacy syntax)",
+			user: "admin",
+			key:  "AQBxyz==",
+			fsid: "abc-def-123",
+			monitors: Monitors{
+				V1: []string{"10.0.0.1:6789"},
+			},
+			fsName:            "",
+			path:              "/",
+			msMode:            "prefer-secure",
+			modernMountSyntax: false,
+			wantSource:        "10.0.0.1:6789:/",
+			wantOptions: []string{
+				"name=admin",
+				"secret=AQBxyz==",
+				"ms_mode=prefer-secure",
+			},
+		},
+		{
+			name: "Empty fsid (legacy syntax)",
+			user: "admin",
+			key:  "AQBxyz==",
+			fsid: "",
+			monitors: Monitors{
+				V1: []string{"10.0.0.1:6789"},
+			},
+			fsName:            "myfs",
+			path:              "/",
+			msMode:            "prefer-secure",
+			modernMountSyntax: false,
+			wantSource:        "10.0.0.1:6789:/",
+			wantOptions: []string{
+				"name=admin",
+				"secret=AQBxyz==",
+				"ms_mode=prefer-secure",
+				"mds_namespace=myfs",
+			},
+		},
+		{
+			name: "Empty fsName and fsid (legacy syntax)",
+			user: "admin",
+			key:  "AQBxyz==",
+			fsid: "",
+			monitors: Monitors{
+				V1: []string{"10.0.0.1:6789"},
+			},
+			fsName:            "",
+			path:              "/",
+			msMode:            "prefer-secure",
+			modernMountSyntax: false,
+			wantSource:        "10.0.0.1:6789:/",
+			wantOptions: []string{
+				"name=admin",
+				"secret=AQBxyz==",
+				"ms_mode=prefer-secure",
+			},
+		},
+		{
+			name: "Empty fsName (modern syntax)",
+			user: "admin",
+			key:  "AQBxyz==",
+			fsid: "abc-def-123",
+			monitors: Monitors{
+				V2: []string{"10.0.0.1:3300"},
+			},
+			fsName:            "",
+			path:              "/",
+			msMode:            "prefer-secure",
+			modernMountSyntax: true,
+			wantSource:        "admin@abc-def-123.=/",
+			wantOptions: []string{
+				"name=admin",
+				"secret=AQBxyz==",
+				"ms_mode=prefer-secure",
+				"mon_addr=10.0.0.1:3300",
+			},
+		},
+		{
+			name: "Empty fsid (modern syntax)",
+			user: "admin",
+			key:  "AQBxyz==",
+			fsid: "",
+			monitors: Monitors{
+				V2: []string{"10.0.0.1:3300"},
+			},
+			fsName:            "myfs",
+			path:              "/",
+			msMode:            "prefer-secure",
+			modernMountSyntax: true,
+			wantSource:        "admin@.myfs=/",
+			wantOptions: []string{
+				"name=admin",
+				"secret=AQBxyz==",
+				"ms_mode=prefer-secure",
+				"mon_addr=10.0.0.1:3300",
 			},
 		},
 	}
