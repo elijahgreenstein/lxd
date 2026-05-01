@@ -37,6 +37,7 @@ help:
 	@echo "* check spelling (without building again):   make spellcheck"
 	@echo "* check inclusive language:                  make woke"
 	@echo "* check accessibility:                       make pa11y"
+	@echo "* update intersphinx inventory backups:      make update-intersphinx-backups"
 	@echo "* check style guide compliance:              make vale"
 	@echo "* check style guide compliance on target:    make vale TARGET=*"
 	@echo "* other possible targets:                    make <TAB twice>"
@@ -46,7 +47,8 @@ help:
 .PHONY: help full-help html epub pdf linkcheck spelling spellcheck woke \
         vale pa11y run serve install pa11y-install   \
         vale-install pdf-prep pdf-prep-force clean clean-doc \
-        lint-md lint pymarkdownlnt-install client objects html-rtd
+        lint-md lint pymarkdownlnt-install client objects html-rtd \
+        update-intersphinx-backups check-intersphinx-backups
 
 full-help: $(VENVDIR)
 	@. $(VENV); $(SPHINXBUILD) -M help "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
@@ -117,6 +119,14 @@ pa11y: pa11y-install html
 objects:
 	# provide a decoded version of objects.inv to the UI
 	. $(VENV) ; cd $(BUILDDIR); python3 -m sphinx.ext.intersphinx 'objects.inv' > objects.inv.txt
+
+update-intersphinx-backups:
+	curl -sSfz .sphinx/intersphinx/cloud-init-objects.inv 'https://cloudinit.readthedocs.io/en/latest/objects.inv' -o .sphinx/intersphinx/cloud-init-objects.inv
+	curl -sSfz .sphinx/intersphinx/imagebuilder-objects.inv 'https://canonical-lxd-imagebuilder.readthedocs-hosted.com/en/latest/objects.inv' -o .sphinx/intersphinx/imagebuilder-objects.inv
+	curl -sSfz .sphinx/intersphinx/snap-objects.inv 'https://snapcraft.io/docs/objects.inv' -o .sphinx/intersphinx/snap-objects.inv
+
+check-intersphinx-backups: update-intersphinx-backups
+	@../scripts/check-and-commit.sh ".sphinx/intersphinx/cloud-init-objects.inv .sphinx/intersphinx/imagebuilder-objects.inv .sphinx/intersphinx/snap-objects.inv" "doc: Refresh intersphinx inventory backups"
 
 lint lint-md: pymarkdownlnt-install
 	@echo "Running Markdown linting..."
