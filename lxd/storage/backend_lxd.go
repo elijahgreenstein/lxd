@@ -8200,7 +8200,7 @@ func (b *lxdBackend) CreateCustomVolumeFromBackup(ctx context.Context, srcBackup
 
 	sourceSnapshots := make([]drivers.Volume, 0, len(customVol.Snapshots))
 
-	// Create database entries fro new storage volume snapshots.
+	// Create database entries for new storage volume snapshots.
 	for i, s := range customVol.Snapshots {
 		if s == nil {
 			return fmt.Errorf("Nil custom volume snapshot definition found at index %d", i)
