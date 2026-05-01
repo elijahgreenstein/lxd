@@ -6536,16 +6536,16 @@ func (d *qemu) Export(w io.Writer, properties map[string]string, expiration time
 		return nil
 	}
 
-	// Look for metadata.yaml.
+	// Parse the metadata file.
 	fnam := filepath.Join(cDir, "metadata.yaml")
-	content, err := os.ReadFile(fnam)
-	if err != nil && !errors.Is(err, os.ErrNotExist) {
+	existingMetadata, err := ParseImageMetadataFile(fnam)
+	if err != nil && !errors.Is(err, fs.ErrNotExist) {
 		_ = tarWriter.Close()
 		d.logger.Error("Failed exporting instance", ctxMap)
 		return meta, err
 	}
 
-	if err != nil {
+	if existingMetadata == nil {
 		// Generate a new metadata.yaml.
 		tempDir, err := os.MkdirTemp("", "lxd_lxd_metadata_")
 		if err != nil {
@@ -6619,13 +6619,7 @@ func (d *qemu) Export(w io.Writer, properties map[string]string, expiration time
 			return meta, err
 		}
 	} else {
-		// Parse the metadata.
-		err = yaml.Unmarshal(content, &meta)
-		if err != nil {
-			_ = tarWriter.Close()
-			d.logger.Error("Failed exporting instance", ctxMap)
-			return meta, err
-		}
+		meta = *existingMetadata
 
 		if !expiration.IsZero() {
 			meta.ExpiryDate = expiration.UTC().Unix()
