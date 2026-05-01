@@ -5458,24 +5458,14 @@ func (d *lxc) ConversionReceive(args instance.ConversionReceiveArgs, progressRep
 }
 
 func (d *lxc) templateApplyNow(trigger instance.TemplateTrigger) error {
-	// If there's no metadata, just return
-	fname := filepath.Join(d.Path(), "metadata.yaml")
-
-	// Parse the metadata
-	content, err := os.ReadFile(fname)
+	// If there's no metadata, just return.
+	metadata, err := ParseImageMetadataFile(filepath.Join(d.Path(), "metadata.yaml"))
 	if err != nil {
-		if errors.Is(err, os.ErrNotExist) {
+		if errors.Is(err, fs.ErrNotExist) {
 			return nil
 		}
 
 		return fmt.Errorf("Failed reading metadata: %w", err)
-	}
-
-	metadata := new(api.ImageMetadata)
-	err = yaml.Unmarshal(content, &metadata)
-
-	if err != nil {
-		return fmt.Errorf("Could not parse %s: %w", fname, err)
 	}
 
 	// Find rootUID and rootGID
