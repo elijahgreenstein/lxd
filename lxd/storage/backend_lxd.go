@@ -840,7 +840,11 @@ func (b *lxdBackend) CreateInstanceFromBackup(srcBackup backup.Info, srcData io.
 		}
 	}
 
-	for _, snap := range srcBackup.Config.Snapshots {
+	for i, snap := range srcBackup.Config.Snapshots {
+		if snap == nil {
+			return nil, nil, fmt.Errorf("Nil instance snapshot definition found at index %d", i)
+		}
+
 		snapInstName := srcBackup.Name + shared.SnapshotDelimiter + snap.Name
 		err = instancetype.ValidName(snapInstName, true)
 		if err != nil {
@@ -893,7 +897,11 @@ func (b *lxdBackend) CreateInstanceFromBackup(srcBackup backup.Info, srcData io.
 	vol := b.GetVolume(volType, contentType, volStorageName, volumeConfig)
 
 	sourceSnapshots := make([]drivers.Volume, 0, len(rootVol.Snapshots))
-	for _, volSnap := range rootVol.Snapshots {
+	for i, volSnap := range rootVol.Snapshots {
+		if volSnap == nil {
+			return nil, nil, fmt.Errorf("Nil root volume snapshot definition found at index %d", i)
+		}
+
 		err = drivers.ValidVolumeName(volSnap.Name)
 		if err != nil {
 			return nil, nil, fmt.Errorf("Invalid volume snapshot name %q: %w", volSnap.Name, err)
@@ -1170,7 +1178,11 @@ func (b *lxdBackend) CreateInstanceFromCopy(ctx context.Context, inst instance.I
 	// Use the information from the backup config to create a list of all the source volume's snapshots.
 	// This way we don't have to retrieve them separately from the database.
 	sourceSnapshots := make([]drivers.Volume, 0, len(rootVol.Snapshots))
-	for _, sourceSnap := range rootVol.Snapshots {
+	for i, sourceSnap := range rootVol.Snapshots {
+		if sourceSnap == nil {
+			return fmt.Errorf("Nil root volume snapshot definition found at index %d", i)
+		}
+
 		snapshotName := drivers.GetSnapshotVolumeName(src.Name(), sourceSnap.Name)
 		snapshotStorageName := project.Instance(src.Project().Name, snapshotName)
 		sourceSnapshots = append(sourceSnapshots, b.GetVolume(volType, contentType, snapshotStorageName, sourceSnap.Config))
@@ -1187,7 +1199,11 @@ func (b *lxdBackend) CreateInstanceFromCopy(ctx context.Context, inst instance.I
 	var snapshotNames []string
 	if snapshots {
 		snapshotNames = make([]string, 0, len(rootVol.Snapshots))
-		for _, snapshot := range rootVol.Snapshots {
+		for i, snapshot := range rootVol.Snapshots {
+			if snapshot == nil {
+				return fmt.Errorf("Nil root volume snapshot definition found at index %d", i)
+			}
+
 			snapshotNames = append(snapshotNames, snapshot.Name)
 		}
 	}
@@ -1438,7 +1454,11 @@ func (b *lxdBackend) RefreshCustomVolume(ctx context.Context, projectName, srcPr
 	// Use the information from the backup config to create a list of all the source volume's snapshots.
 	// This way we don't have to retrieve them separately from the database.
 	sourceSnapshots := make([]drivers.Volume, 0, len(customVol.Snapshots))
-	for _, sourceSnap := range customVol.Snapshots {
+	for i, sourceSnap := range customVol.Snapshots {
+		if sourceSnap == nil {
+			return fmt.Errorf("Backup config contains nil custom volume snapshot at index %d", i)
+		}
+
 		snapshotName := drivers.GetSnapshotVolumeName(customVol.Name, sourceSnap.Name)
 		snapshotStorageName := project.StorageVolume(srcProjectName, snapshotName)
 		sourceSnapshots = append(sourceSnapshots, b.GetVolume(drivers.VolumeTypeCustom, contentType, snapshotStorageName, sourceSnap.Config))
@@ -1465,7 +1485,11 @@ func (b *lxdBackend) RefreshCustomVolume(ctx context.Context, projectName, srcPr
 	if snapshots {
 		// Compare snapshots.
 		sourceSnapshotComparable := make([]ComparableSnapshot, 0, len(customVol.Snapshots))
-		for _, sourceSnap := range customVol.Snapshots {
+		for i, sourceSnap := range customVol.Snapshots {
+			if sourceSnap == nil {
+				return fmt.Errorf("Backup config contains nil custom volume snapshot at index %d", i)
+			}
+
 			sourceSnapshotComparable = append(sourceSnapshotComparable, ComparableSnapshot{
 				Name:         sourceSnap.Name,
 				CreationDate: sourceSnap.CreatedAt,
@@ -1520,6 +1544,10 @@ func (b *lxdBackend) RefreshCustomVolume(ctx context.Context, projectName, srcPr
 		// Only refresh the snapshots that the target needs.
 		srcSnapVols := make([]string, 0, len(customVol.Snapshots))
 		for _, srcSnap := range customVol.Snapshots {
+			if srcSnap == nil {
+				return errors.New("Backup config contains nil custom volume snapshot")
+			}
+
 			newSnapshotName := drivers.GetSnapshotVolumeName(dbVol.Name, srcSnap.Name)
 			snapExpiryDate := time.Time{}
 			if srcSnap.ExpiresAt != nil {
@@ -1781,6 +1809,10 @@ func (b *lxdBackend) RefreshInstance(ctx context.Context, inst instance.Instance
 	// Get source snapshot volume constructs.
 	snapshotNames := make([]string, 0, len(rootVol.Snapshots))
 	for i := range rootVol.Snapshots {
+		if rootVol.Snapshots[i] == nil {
+			return fmt.Errorf("Nil root volume snapshot definition found at index %d", i)
+		}
+
 		snapshotNames = append(snapshotNames, rootVol.Snapshots[i].Name)
 	}
 
@@ -1809,6 +1841,10 @@ func (b *lxdBackend) RefreshInstance(ctx context.Context, inst instance.Instance
 
 		// Create database entries for new storage volume snapshots.
 		for i := range rootVol.Snapshots {
+			if rootVol.Snapshots[i] == nil {
+				return fmt.Errorf("Nil root volume snapshot definition found at index %d", i)
+			}
+
 			newSnapshotName := drivers.GetSnapshotVolumeName(inst.Name(), rootVol.Snapshots[i].Name)
 
 			var volumeSnapExpiryDate time.Time
@@ -4988,7 +5024,11 @@ func (b *lxdBackend) CreateCustomVolumeFromCopy(ctx context.Context, projectName
 	// Use the information from the backup config to create a list of all the source volume's snapshots.
 	// This way we don't have to retrieve them separately from the database.
 	sourceSnapshots := make([]drivers.Volume, 0, len(customVol.Snapshots))
-	for _, sourceSnap := range customVol.Snapshots {
+	for i, sourceSnap := range customVol.Snapshots {
+		if sourceSnap == nil {
+			return fmt.Errorf("Backup config contains nil custom volume snapshot at index %d", i)
+		}
+
 		snapshotName := drivers.GetSnapshotVolumeName(customVol.Name, sourceSnap.Name)
 		snapshotStorageName := project.StorageVolume(srcProjectName, snapshotName)
 		sourceSnapshots = append(sourceSnapshots, b.GetVolume(drivers.VolumeTypeCustom, contentType, snapshotStorageName, sourceSnap.Config))
@@ -5005,6 +5045,10 @@ func (b *lxdBackend) CreateCustomVolumeFromCopy(ctx context.Context, projectName
 	if snapshots {
 		snapshotNames = make([]string, 0, len(customVol.Snapshots))
 		for _, snapshot := range customVol.Snapshots {
+			if snapshot == nil {
+				return errors.New("Backup config contains nil custom volume snapshot")
+			}
+
 			snapshotNames = append(snapshotNames, snapshot.Name)
 		}
 	}
@@ -5485,6 +5529,10 @@ func (b *lxdBackend) CreateCustomVolumeFromMigration(ctx context.Context, projec
 				}
 
 				for _, srcSnap := range customVol.Snapshots {
+					if srcSnap == nil {
+						return errors.New("Backup config contains nil custom volume snapshot")
+					}
+
 					if srcSnap.Name != snapName {
 						continue
 					}
@@ -6185,6 +6233,10 @@ func (b *lxdBackend) ImportCustomVolume(projectName string, poolVol *backupConfi
 
 	// Create the storage volume snapshot DB records.
 	for _, poolVolSnap := range customVol.Snapshots {
+		if poolVolSnap == nil {
+			return nil, errors.New("Backup config contains nil custom volume snapshot")
+		}
+
 		fullSnapName := drivers.GetSnapshotVolumeName(customVol.Name, poolVolSnap.Name)
 
 		// Copy volume config from backup file if present
@@ -6216,6 +6268,10 @@ func (b *lxdBackend) ImportCustomVolume(projectName string, poolVol *backupConfi
 
 	// Create snapshot mount paths and snapshot parent directory if needed.
 	for _, poolVolSnap := range customVol.Snapshots {
+		if poolVolSnap == nil {
+			return nil, errors.New("Backup config contains nil custom volume snapshot")
+		}
+
 		l.Debug("Ensuring instance snapshot mount path", logger.Ctx{"snapshot": poolVolSnap.Name})
 
 		snapVol, err := vol.NewSnapshot(poolVolSnap.Name)
@@ -7020,7 +7076,11 @@ func (b *lxdBackend) CheckInstanceBackupFileSnapshots(backupConf *backupConfig.C
 	}
 
 	volSnaps := make([]drivers.Volume, 0, len(rootVol.Snapshots))
-	for _, snap := range rootVol.Snapshots {
+	for i, snap := range rootVol.Snapshots {
+		if snap == nil {
+			return nil, fmt.Errorf("Nil root volume snapshot definition found at index %d", i)
+		}
+
 		snapName := drivers.GetSnapshotVolumeName(backupConf.Instance.Name, snap.Name)
 		volSnaps = append(volSnaps, b.GetVolume(volType, contentType, snapName, snap.Config))
 	}
@@ -7449,6 +7509,10 @@ func (b *lxdBackend) detectUnknownInstanceAndCustomVolumes(vol *drivers.Volume, 
 
 		// Check there are no existing DB records present for snapshots.
 		for _, snapshot := range backupConf.Snapshots {
+			if snapshot == nil {
+				return fmt.Errorf("Instance %q in project %q has nil snapshot in backup file", instName, projectName)
+			}
+
 			fullSnapshotName := drivers.GetSnapshotVolumeName(instName, snapshot.Name)
 
 			// Check if an entry for the instance already exists in the DB.
@@ -7678,7 +7742,11 @@ func (b *lxdBackend) ImportInstance(inst instance.Instance, poolVol *backupConfi
 
 		if len(snapshots) > 0 && len(rootVol.Snapshots) > 0 {
 			// Create storage volume snapshot DB records from the entries in the backup file config.
-			for _, poolVolSnap := range rootVol.Snapshots {
+			for i, poolVolSnap := range rootVol.Snapshots {
+				if poolVolSnap == nil {
+					return nil, fmt.Errorf("Nil root volume snapshot definition found at index %d", i)
+				}
+
 				fullSnapName := drivers.GetSnapshotVolumeName(inst.Name(), poolVolSnap.Name)
 
 				// Copy volume config from backup file if present,
@@ -8074,10 +8142,14 @@ func (b *lxdBackend) CreateCustomVolumeFromBackup(ctx context.Context, srcBackup
 		}
 	}
 
-	for _, snap := range customVol.Snapshots {
+	for i, snap := range customVol.Snapshots {
+		if snap == nil {
+			return fmt.Errorf("Nil custom volume snapshot definition found at index %d", i)
+		}
+
 		err = drivers.ValidVolumeName(snap.Name)
 		if err != nil {
-			return fmt.Errorf("Invalid volume snapshot name %q: %w", snap.Name, err)
+			return fmt.Errorf("Invalid custom volume snapshot name %q: %w", snap.Name, err)
 		}
 	}
 
@@ -8125,7 +8197,11 @@ func (b *lxdBackend) CreateCustomVolumeFromBackup(ctx context.Context, srcBackup
 	sourceSnapshots := make([]drivers.Volume, 0, len(customVol.Snapshots))
 
 	// Create database entries fro new storage volume snapshots.
-	for _, s := range customVol.Snapshots {
+	for i, s := range customVol.Snapshots {
+		if s == nil {
+			return fmt.Errorf("Nil custom volume snapshot definition found at index %d", i)
+		}
+
 		snapshot := s // Local var for revert.
 		snapName := snapshot.Name
 
