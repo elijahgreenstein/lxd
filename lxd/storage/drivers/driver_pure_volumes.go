@@ -26,7 +26,7 @@ import (
 func (d *pure) commonVolumeRules() map[string]func(value string) error {
 	return map[string]func(value string) error{
 		// lxdmeta:generate(entities=storage-pure; group=volume-conf; key=block.filesystem)
-		// Valid options are: `btrfs`, `ext4`, `xfs`
+		// Valid options: `btrfs`, `ext4`, `xfs`
 		// If not set, `ext4` is assumed.
 		// ---
 		//  type: string
