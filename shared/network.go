@@ -20,45 +20,34 @@ const connectErrorPrefix = "Cannot connect to"
 
 // RFC3493Dialer connects to the specified server and returns the connection.
 // If the connection cannot be established then an error with the connectErrorPrefix is returned.
+// Go's built-in Happy Eyeballs (RFC 8305) races IPv6 and IPv4 concurrently when a hostname is passed.
 func RFC3493Dialer(ctx context.Context, network string, address string) (net.Conn, error) {
-	host, port, err := net.SplitHostPort(address)
-	if err != nil {
-		return nil, err
-	}
-
-	addrs, err := net.LookupHost(host)
+	_, _, err := net.SplitHostPort(address)
 	if err != nil {
 		return nil, err
 	}
 
 	kaConfig, userTimeout := tcp.KeepAliveTimeouts()
-	var errs []error
-	for _, a := range addrs {
-		a := net.JoinHostPort(a, port)
 
-		dialer := net.Dialer{
-			Timeout:         10 * time.Second,
-			KeepAliveConfig: kaConfig,
-		}
-
-		c, err := dialer.DialContext(ctx, network, a)
-		if err != nil {
-			errs = append(errs, err)
-			continue
-		}
-
-		tc, ok := c.(*net.TCPConn)
-		if ok {
-			err = tcp.SetUserTimeout(tc, userTimeout)
-			if err != nil {
-				logger.Warn("Failed setting TCP user timeout on outgoing connection", logger.Ctx{"address": a, "err": err})
-			}
-		}
-
-		return c, nil
+	dialer := net.Dialer{
+		Timeout:         10 * time.Second,
+		KeepAliveConfig: kaConfig,
 	}
 
-	return nil, fmt.Errorf("%s: %s (%v)", connectErrorPrefix, address, errs)
+	c, err := dialer.DialContext(ctx, network, address)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %s (%w)", connectErrorPrefix, address, err)
+	}
+
+	tc, ok := c.(*net.TCPConn)
+	if ok {
+		err = tcp.SetUserTimeout(tc, userTimeout)
+		if err != nil {
+			logger.Warn("Failed setting TCP user timeout on outgoing connection", logger.Ctx{"address": address, "err": err})
+		}
+	}
+
+	return c, nil
 }
 
 // IsConnectionError returns true if the given error is due to the dialer not being able to connect to the target
