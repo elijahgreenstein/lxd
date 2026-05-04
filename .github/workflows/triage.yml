@@ -5,8 +5,7 @@ on:
   # checked out here, so the privileged context is not exposed to untrusted input.
   pull_request_target: # zizmor: ignore[dangerous-triggers]
 
-permissions:
-  contents: read
+permissions: {}
 
 jobs:
   label:
