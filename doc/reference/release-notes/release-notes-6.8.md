@@ -53,6 +53,15 @@ The daemon gains a background task for running scheduled replicators, and matchi
 - Documentation: {ref}`howto-replicators-setup`
 - API extension: {ref}`extension-replicators`
 
+```{admonition} Known Replicators issues
+:class: warning
+ There are currently some known issues with Replicators that were discovered after the 6.8 release.
+ Fixes for these issues are expected in the LXD 6.9 release:
+
+- [{spellexception}`Replicator fails the second time it is executed`](https://github.com/canonical/lxd/issues/18205)
+- [{spellexception}`Replicator fails to process instances (containers or virtual machines) that are deployed on cluster members other than the one where the replicator run command is executed`](https://github.com/canonical/lxd/issues/18204)
+```
+
 ### GPU CDI hotplug support for containers
 
 Building on the AMD CDI container support added in LXD 6.7, GPU CDI devices can now be hotplugged into running containers.
