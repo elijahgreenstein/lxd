@@ -41,6 +41,13 @@ func applyTriggers(ctx context.Context, tx *sql.Tx) error {
 		return nil
 	}
 
+	for _, triggerFunc := range globalTriggers {
+		err := applyTrigger(triggerFunc, nil)
+		if err != nil {
+			return err
+		}
+	}
+
 	for entityType, entityTypeInfo := range entityTypes {
 		err := applyTrigger(entityTypeInfo.onDeleteTriggerSQL, &entityType)
 		if err != nil {
@@ -59,4 +66,21 @@ func applyTriggers(ctx context.Context, tx *sql.Tx) error {
 	}
 
 	return nil
+}
+
+var globalTriggers = []triggerFunc{
+	triggerIdentitiesCertificatesAfterDelete,
+}
+
+func triggerIdentitiesCertificatesAfterDelete() (name string, stmt string) {
+	name = "identities_certificates_after_delete"
+	stmt = fmt.Sprintf(`
+CREATE TRIGGER %s
+    AFTER DELETE ON identities_certificates
+	BEGIN
+	DELETE FROM certificates
+		WHERE certificates.id = OLD.certificate_id;
+	END;
+`, name)
+	return name, stmt
 }
