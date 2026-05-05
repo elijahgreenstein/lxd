@@ -460,7 +460,7 @@ func poolAndVolumeCommonRules(vol *drivers.Volume) map[string]func(string) error
 		//  scope: global
 		"snapshots.schedule": validate.Optional(validate.IsCron([]string{"@hourly", "@daily", "@midnight", "@weekly", "@monthly", "@annually", "@yearly"})),
 		// lxdmeta:generate(entities=storage-btrfs,storage-cephfs,storage-ceph,storage-dir,storage-lvm,storage-zfs,storage-powerflex,storage-pure,storage-alletra; group=volume-conf; key=snapshots.pattern)
-		// You can specify a naming template that is used for scheduled snapshots and unnamed snapshots.
+		// You can specify a naming template for scheduled snapshots and unnamed snapshots.
 		//
 		// {{snapshot_pattern_detail}}
 		// ---
@@ -475,7 +475,7 @@ func poolAndVolumeCommonRules(vol *drivers.Volume) map[string]func(string) error
 	// security.shifted and security.unmapped are only relevant for custom filesystem volumes.
 	if vol == nil || (vol.Type() == drivers.VolumeTypeCustom && vol.ContentType() == drivers.ContentTypeFS) {
 		// lxdmeta:generate(entities=storage-btrfs,storage-cephfs,storage-ceph,storage-dir,storage-lvm,storage-zfs,storage-powerflex,storage-pure,storage-alletra; group=volume-conf; key=security.shifted)
-		// Enabling this option allows attaching the volume to multiple isolated instances.
+		// Enable this option to allow the volume to be attached to multiple isolated instances.
 		// ---
 		//  type: bool
 		//  condition: custom volume
@@ -497,7 +497,7 @@ func poolAndVolumeCommonRules(vol *drivers.Volume) map[string]func(string) error
 	// security.shared guards virtual-machine and custom block volumes.
 	if vol == nil || ((vol.Type() == drivers.VolumeTypeCustom || vol.Type() == drivers.VolumeTypeVM) && vol.ContentType() == drivers.ContentTypeBlock) {
 		// lxdmeta:generate(entities=storage-btrfs,storage-ceph,storage-dir,storage-lvm,storage-zfs,storage-powerflex,storage-pure,storage-alletra; group=volume-conf; key=security.shared)
-		// Enabling this option allows sharing the volume across multiple instances despite the possibility of data loss.
+		// Enable this option to allow the volume to be shared across multiple instances despite the possibility of data loss.
 		//
 		// ---
 		//  type: bool
@@ -515,7 +515,7 @@ func poolAndVolumeCommonRules(vol *drivers.Volume) map[string]func(string) error
 		// ---
 		//  type: string
 		//  defaultdesc: random UUID
-		//  shortdesc: The volume's UUID
+		//  shortdesc: Volume UUID
 		//  scope: global
 		rules["volatile.uuid"] = validate.Optional(validate.IsUUID)
 
@@ -524,7 +524,7 @@ func poolAndVolumeCommonRules(vol *drivers.Volume) map[string]func(string) error
 		// ---
 		//  type: string
 		//  defaultdesc: DevLXD owner identity ID
-		//  shortdesc: The ID of the DevLXD identity which owns the volume
+		//  shortdesc: ID of the DevLXD identity that owns the volume
 		//  scope: global
 		rules["volatile.devlxd.owner"] = validate.Optional(validate.IsUUID)
 	}

@@ -1611,7 +1611,7 @@ func (d *zfs) HasVolume(vol Volume) (bool, error) {
 func (d *zfs) commonVolumeRules() map[string]func(value string) error {
 	return map[string]func(value string) error{
 		// lxdmeta:generate(entities=storage-zfs; group=volume-conf; key=block.filesystem)
-		// Valid options are: `btrfs`, `ext4`, `xfs`
+		// Valid options: `btrfs`, `ext4`, `xfs`
 		// If not set, `ext4` is assumed.
 		// ---
 		//  type: string
