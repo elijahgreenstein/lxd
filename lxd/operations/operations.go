@@ -268,7 +268,18 @@ func scheduleOperation(s *state.State, args OperationArgs) (*Operation, error) {
 		// Skip if the entity type is "server". This doesn't give any useful information to the requestor (since the url will just be "/1.0").
 		_, ok := metadata[api.MetadataEntityURL]
 		if !ok && operationEntityType != entity.TypeServer {
-			metadata[api.MetadataEntityURL] = op.entityURL.String()
+			// The project that is present in the operation entity URL is always the effective project (e.g. the actual
+			// project where the resource lives in the database). This means that if a user is updating a network within
+			// a project that has `features.networks=false`, the auto-generated metadata entity URL would incorrectly have
+			// `project=default`. For this reason, we always overwrite the project to be the project that the operation
+			// is contained within, which should always be the requested project.
+			requiresProject, _ := operationEntityType.RequiresProject()
+			metadataURL := *op.entityURL
+			if requiresProject {
+				metadataURL.Project(args.ProjectName)
+			}
+
+			metadata[api.MetadataEntityURL] = metadataURL.String()
 		}
 
 		op.metadata, err = validateMetadata(metadata)
