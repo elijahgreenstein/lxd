@@ -121,9 +121,9 @@ objects:
 	. $(VENV) ; cd $(BUILDDIR); python3 -m sphinx.ext.intersphinx 'objects.inv' > objects.inv.txt
 
 update-intersphinx-backups:
-	curl -sSfz .sphinx/intersphinx/cloud-init-objects.inv 'https://cloudinit.readthedocs.io/en/latest/objects.inv' -o .sphinx/intersphinx/cloud-init-objects.inv
-	curl -sSfz .sphinx/intersphinx/imagebuilder-objects.inv 'https://canonical-lxd-imagebuilder.readthedocs-hosted.com/en/latest/objects.inv' -o .sphinx/intersphinx/imagebuilder-objects.inv
-	curl -sSfz .sphinx/intersphinx/snap-objects.inv 'https://snapcraft.io/docs/objects.inv' -o .sphinx/intersphinx/snap-objects.inv
+	curl -sSfLz .sphinx/intersphinx/cloud-init-objects.inv 'https://docs.cloud-init.io/en/latest/objects.inv' -o .sphinx/intersphinx/cloud-init-objects.inv
+	curl -sSfLz .sphinx/intersphinx/imagebuilder-objects.inv 'https://canonical-lxd-imagebuilder.readthedocs-hosted.com/en/latest/objects.inv' -o .sphinx/intersphinx/imagebuilder-objects.inv
+	curl -sSfLz .sphinx/intersphinx/snap-objects.inv 'https://snapcraft.io/docs/objects.inv' -o .sphinx/intersphinx/snap-objects.inv
 
 check-intersphinx-backups: update-intersphinx-backups
 	@../scripts/check-and-commit.sh ".sphinx/intersphinx/cloud-init-objects.inv .sphinx/intersphinx/imagebuilder-objects.inv .sphinx/intersphinx/snap-objects.inv" "doc: Refresh intersphinx inventory backups"
