@@ -198,8 +198,7 @@ if os.environ.get('CI') == 'true':
         r"https://www\.dell\.com.*",
     ])
 
-# Pages on which to ignore anchors
-# (This list will be appended to linkcheck_anchors_ignore_for_url)
+# Pages on which to ignore anchors (check the link without the anchor)
 linkcheck_anchors_ignore_for_url = [
     r'https://github\.com/.*',
     r'https://snapcraft\.io/docs/.*',
@@ -241,11 +240,9 @@ extensions = [
     'myst_parser',
 ]
 
-# Additional MyST syntax
+# Additional MyST extensions
+# substitution, deflist, and linkify are always enabled by default
 myst_enable_extensions = {
-    'substitution',
-    'deflist',
-    'linkify',
     'attrs_block',
 }
 
@@ -298,7 +295,7 @@ rst_prolog = """
 # Use custom 404 page text
 notfound_context = {
     'title': 'Page not found',
-    'body': '<h1>Page not found</h1>\n\n<p><strong>Sorry, but the documentation page that you are looking for was not found.</strong></p>\n\n<p>Documentation changes over time, and pages are moved around. We try to redirect you to the updated content where possible, but unfortunately, that didn\'t work this time (maybe because the content you were looking for does not exist in this version of the documentation).</p>\n<p>You can try to use the navigation to locate the content you\'re looking for, or search for a similar page.</p>\n',
+    'body': '<p><strong>Sorry, but the documentation page that you are looking for was not found.</strong></p>\n\n<p>Documentation changes over time, and pages are moved around. We try to redirect you to the updated content where possible, but unfortunately, that didn\'t work this time (maybe because the content you were looking for does not exist in this version of the documentation).</p>\n<p>You can try to use the navigation to locate the content you\'re looking for, or search for a similar page.</p>\n',
 }
 
 # Prevents making links from URLs that do not start with a protocol
@@ -320,10 +317,13 @@ if os.path.exists('./related_topics.yaml'):
 html_context['flyout_default_version_label'] = os.environ.get('FLYOUT_DEFAULT_VERSION_LABEL', '')
 
 # Add configuration for intersphinx mapping
+# Local fallback inventories are used if the remote is temporarily unavailable.
+# To update them, run: make update-intersphinx-backups
+# When adding a new mapping here, also update the update-intersphinx-backups Makefile target to download a backup inventory file.
 intersphinx_mapping = {
-    'cloud-init': ('https://cloudinit.readthedocs.io/en/latest/', None),
-    'imagebuilder': ('https://canonical-lxd-imagebuilder.readthedocs-hosted.com/en/latest/', None),
-    'snap': ('https://snapcraft.io/docs/', None),
+    'cloud-init': ('https://docs.cloud-init.io/en/latest/', (None, '.sphinx/intersphinx/cloud-init-objects.inv')),
+    'imagebuilder': ('https://canonical-lxd-imagebuilder.readthedocs-hosted.com/en/latest/', (None, '.sphinx/intersphinx/imagebuilder-objects.inv')),
+    'snap': ('https://snapcraft.io/docs/', (None, '.sphinx/intersphinx/snap-objects.inv')),
 }
 
 if ('LOCAL_SPHINX_BUILD' in os.environ) and (os.environ['LOCAL_SPHINX_BUILD'] == 'True'):
