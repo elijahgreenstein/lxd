@@ -128,6 +128,15 @@ var updates = map[int]schema.Update{
 	82: updateFromV81,
 	83: updateFromV82,
 	84: updateFromV83,
+	85: updateFromV84,
+}
+
+func updateFromV84(ctx context.Context, tx *sql.Tx) error {
+	_, err := tx.ExecContext(ctx, `
+DROP TRIGGER IF EXISTS identities_certificates_after_delete;
+`)
+
+	return err
 }
 
 func updateFromV83(ctx context.Context, tx *sql.Tx) error {
