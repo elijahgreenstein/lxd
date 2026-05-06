@@ -226,10 +226,20 @@ func getFileSpecs(f *ast.File) ([]Spec, map[*ast.StructType]*Spec, error) {
 				FieldName: field.Names[0].Name,
 			}
 
-			// Tags only contain column names.
-			newFieldSpec.ColumnName = reflect.StructTag(strings.Trim(field.Tag.Value, "`")).Get("db")
-			if newFieldSpec.ColumnName == "" {
+			// Tags contain column names and the supplemental "primary" indicator.
+			tag := reflect.StructTag(strings.Trim(field.Tag.Value, "`")).Get("db")
+			if tag == "" {
 				continue
+			}
+
+			var supplemental string
+			newFieldSpec.ColumnName, supplemental, ok = strings.Cut(tag, ",")
+			if ok {
+				if supplemental != "primary" {
+					return nil, nil, fmt.Errorf("Invalid supplemental tag info %q for field %q in struct %q", supplemental, newFieldSpec.FieldName, newSpec.StructName)
+				}
+
+				newFieldSpec.Primary = true
 			}
 
 			// Check if it is only the column name (without the table name as a qualifier)
@@ -286,7 +296,7 @@ func getFileSpecs(f *ast.File) ([]Spec, map[*ast.StructType]*Spec, error) {
 
 func getDeferredSpecs(allSpecs []Spec, deferredDecls map[*ast.StructType]*Spec) ([]Spec, error) {
 	for structTypeSpec, newSpec := range deferredDecls {
-		if newSpec.PrimaryKey.FieldName != "" {
+		if newSpec.hasPrimaryKey() {
 			return nil, fmt.Errorf("Struct %q contains both a referenced type and a primary key", newSpec.StructName)
 		}
 
