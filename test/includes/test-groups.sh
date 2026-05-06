@@ -155,6 +155,7 @@ readonly test_group_standalone=(
     "instances_selective_recursion"
     "kernel_limits"
     "loki"
+    "loki_security_forwarding"
     "loki_security_types"
     "lxd_user"
     "metrics"
