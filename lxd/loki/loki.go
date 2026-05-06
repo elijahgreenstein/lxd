@@ -424,7 +424,7 @@ func (c *Client) HandleEvent(event api.Event) {
 		// Loki receives the OWASP-shaped audit payload. The events API
 		// metadata uses Go-style names; the OWASP transformation lives
 		// here so consumers of /1.0/events do not see OWASP fields.
-		owasp := c.securityEventToOWASP(event, secEvent)
+		owasp := c.securityEventToOWASP(event, secEvent, location)
 
 		for k, v := range owasp {
 			if !slices.Contains(c.cfg.labels, k) {
@@ -455,7 +455,7 @@ func (c *Client) HandleEvent(event api.Event) {
 // events API is combined with the envelope timestamp/location and the
 // server-static fields plumbed through the Loki client config so that the
 // resulting line conforms to the OWASP audit log schema.
-func (c *Client) securityEventToOWASP(event api.Event, sec api.EventSecurity) map[string]string {
+func (c *Client) securityEventToOWASP(event api.Event, sec api.EventSecurity, location string) map[string]string {
 	owasp := map[string]string{
 		"appid":               "lxd",
 		"type":                api.EventTypeSecurity,
@@ -469,9 +469,8 @@ func (c *Client) securityEventToOWASP(event api.Event, sec api.EventSecurity) ma
 		"protocol":            "https",
 		"request_uri":         sec.RequestPath,
 		"request_method":      sec.RequestMethod,
-		"project":             sec.Project,
-		"event_source":        event.Location,
-		"cluster_member_name": event.Location,
+		"event_source":        location,
+		"cluster_member_name": location,
 		"cluster_identifier":  c.cfg.clusterIdentifier,
 	}
 
