@@ -264,11 +264,6 @@ func getFileSpecs(f *ast.File) ([]Spec, map[*ast.StructType]*Spec, error) {
 				}
 			}
 
-			// Hardcode primary key as "id" column, as that is always true in LXD.
-			if newFieldSpec.ColumnName == tableName+".id" {
-				newSpec.PrimaryKey = newFieldSpec
-			}
-
 			newSpec.Fields = append(newSpec.Fields, newFieldSpec)
 		}
 
