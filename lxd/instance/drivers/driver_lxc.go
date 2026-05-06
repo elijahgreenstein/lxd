@@ -4540,9 +4540,16 @@ func (d *lxc) Export(w io.Writer, properties map[string]string, expiration time.
 		return nil
 	}
 
-	// Look for metadata.yaml.
+	// Parse the metadata file.
 	fnam := filepath.Join(cDir, "metadata.yaml")
-	if !shared.PathExists(fnam) {
+	existingMetadata, err := ParseImageMetadataFile(fnam)
+	if err != nil && !errors.Is(err, fs.ErrNotExist) {
+		_ = tarWriter.Close()
+		d.logger.Error("Failed exporting instance", ctxMap)
+		return meta, err
+	}
+
+	if existingMetadata == nil {
 		// Generate a new metadata.yaml.
 		tempDir, err := os.MkdirTemp("", "lxd_lxd_metadata_")
 		if err != nil {
@@ -4617,20 +4624,7 @@ func (d *lxc) Export(w io.Writer, properties map[string]string, expiration time.
 			return meta, err
 		}
 	} else {
-		// Parse the metadata.
-		content, err := os.ReadFile(fnam)
-		if err != nil {
-			_ = tarWriter.Close()
-			d.logger.Error("Failed exporting instance", ctxMap)
-			return meta, err
-		}
-
-		err = yaml.Unmarshal(content, &meta)
-		if err != nil {
-			_ = tarWriter.Close()
-			d.logger.Error("Failed exporting instance", ctxMap)
-			return meta, err
-		}
+		meta = *existingMetadata
 
 		if !expiration.IsZero() {
 			meta.ExpiryDate = expiration.UTC().Unix()
@@ -5470,24 +5464,14 @@ func (d *lxc) ConversionReceive(args instance.ConversionReceiveArgs, progressRep
 }
 
 func (d *lxc) templateApplyNow(trigger instance.TemplateTrigger) error {
-	// If there's no metadata, just return
-	fname := filepath.Join(d.Path(), "metadata.yaml")
-
-	// Parse the metadata
-	content, err := os.ReadFile(fname)
+	// If there's no metadata, just return.
+	metadata, err := ParseImageMetadataFile(filepath.Join(d.Path(), "metadata.yaml"))
 	if err != nil {
-		if errors.Is(err, os.ErrNotExist) {
+		if errors.Is(err, fs.ErrNotExist) {
 			return nil
 		}
 
 		return fmt.Errorf("Failed reading metadata: %w", err)
-	}
-
-	metadata := new(api.ImageMetadata)
-	err = yaml.Unmarshal(content, &metadata)
-
-	if err != nil {
-		return fmt.Errorf("Could not parse %s: %w", fname, err)
 	}
 
 	// Find rootUID and rootGID
