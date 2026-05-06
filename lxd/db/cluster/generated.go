@@ -40,13 +40,13 @@ func (a AuthGroupsRow) UpdateValues() []any {
 }
 
 // PKColumn returns the column name for the primary key of a [AuthGroupsRow] entity used during an update.
-func (a AuthGroupsRow) PKColumn() string {
-	return "id"
+func (a AuthGroupsRow) PKColumns() []string {
+	return []string{"id"}
 }
 
 // PKValue returns the value for the primary key of a [AuthGroupsRow] entity used during an update.
-func (a AuthGroupsRow) PKValue() any {
-	return a.ID
+func (a AuthGroupsRow) PKValues() []any {
+	return []any{a.ID}
 }
 
 // CreateStmt returns a query that creates a [AuthGroupsRow] entity.
@@ -96,13 +96,13 @@ func (c CertificatesRow) UpdateValues() []any {
 }
 
 // PKColumn returns the column name for the primary key of a [CertificatesRow] entity used during an update.
-func (c CertificatesRow) PKColumn() string {
-	return "id"
+func (c CertificatesRow) PKColumns() []string {
+	return []string{"id"}
 }
 
 // PKValue returns the value for the primary key of a [CertificatesRow] entity used during an update.
-func (c CertificatesRow) PKValue() any {
-	return c.ID
+func (c CertificatesRow) PKValues() []any {
+	return []any{c.ID}
 }
 
 // CreateStmt returns a query that creates a [CertificatesRow] entity.
@@ -153,13 +153,13 @@ func (c ClusterLinkRow) UpdateValues() []any {
 }
 
 // PKColumn returns the column name for the primary key of a [ClusterLinkRow] entity used during an update.
-func (c ClusterLinkRow) PKColumn() string {
-	return "id"
+func (c ClusterLinkRow) PKColumns() []string {
+	return []string{"id"}
 }
 
 // PKValue returns the value for the primary key of a [ClusterLinkRow] entity used during an update.
-func (c ClusterLinkRow) PKValue() any {
-	return c.ID
+func (c ClusterLinkRow) PKValues() []any {
+	return []any{c.ID}
 }
 
 // CreateStmt returns a query that creates a [ClusterLinkRow] entity.
@@ -211,13 +211,13 @@ func (i IdentitiesRow) UpdateValues() []any {
 }
 
 // PKColumn returns the column name for the primary key of a [IdentitiesRow] entity used during an update.
-func (i IdentitiesRow) PKColumn() string {
-	return "id"
+func (i IdentitiesRow) PKColumns() []string {
+	return []string{"id"}
 }
 
 // PKValue returns the value for the primary key of a [IdentitiesRow] entity used during an update.
-func (i IdentitiesRow) PKValue() any {
-	return i.ID
+func (i IdentitiesRow) PKValues() []any {
+	return []any{i.ID}
 }
 
 // CreateStmt returns a query that creates a [IdentitiesRow] entity.
@@ -335,13 +335,13 @@ func (p PlacementGroupsRow) UpdateValues() []any {
 }
 
 // PKColumn returns the column name for the primary key of a [PlacementGroupsRow] entity used during an update.
-func (p PlacementGroupsRow) PKColumn() string {
-	return "id"
+func (p PlacementGroupsRow) PKColumns() []string {
+	return []string{"id"}
 }
 
 // PKValue returns the value for the primary key of a [PlacementGroupsRow] entity used during an update.
-func (p PlacementGroupsRow) PKValue() any {
-	return p.ID
+func (p PlacementGroupsRow) PKValues() []any {
+	return []any{p.ID}
 }
 
 // CreateStmt returns a query that creates a [PlacementGroupsRow] entity.
@@ -429,13 +429,13 @@ func (r ReplicatorRow) UpdateValues() []any {
 }
 
 // PKColumn returns the column name for the primary key of a [ReplicatorRow] entity used during an update.
-func (r ReplicatorRow) PKColumn() string {
-	return "id"
+func (r ReplicatorRow) PKColumns() []string {
+	return []string{"id"}
 }
 
 // PKValue returns the value for the primary key of a [ReplicatorRow] entity used during an update.
-func (r ReplicatorRow) PKValue() any {
-	return r.ID
+func (r ReplicatorRow) PKValues() []any {
+	return []any{r.ID}
 }
 
 // CreateStmt returns a query that creates a [ReplicatorRow] entity.
