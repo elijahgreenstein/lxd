@@ -3086,3 +3086,16 @@ This includes the following new endpoints (see {ref}`rest-api` for details):
 
 Adds a new `security` event type conforming to OWASP security event logging guidelines.
 Security events are accessible via `GET /1.0/events?type=security` and can be routed to Grafana Loki by adding `security` to the `loki.types` server configuration.
+
+## `storage_driver_powerstore`
+
+Adds a new `powerstore` storage driver which allows the consumption of storage volumes from a PowerStore storage array using iSCSI.
+
+The following pool level configuration keys have been added:
+
+1. {config:option}`storage-powerstore-pool-conf:powerstore.gateway`
+1. {config:option}`storage-powerstore-pool-conf:powerstore.gateway.verify`
+1. {config:option}`storage-powerstore-pool-conf:powerstore.user.name`
+1. {config:option}`storage-powerstore-pool-conf:powerstore.user.password`
+1. {config:option}`storage-powerstore-pool-conf:powerstore.mode`
+1. {config:option}`storage-powerstore-pool-conf:powerstore.target`
