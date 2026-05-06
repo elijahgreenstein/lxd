@@ -121,6 +121,9 @@ const qemuSparseUSBPorts = 8
 // qemuBusModePersistent is the volatile.bus.mode for persistent bus allocation mode.
 const qemuBusModePersistent = "persistent"
 
+// agentConnectTimeout is the amount of time to wait when connecting to the QEMU agent before timing out.
+const agentConnectTimeout = 3 * time.Second
+
 var errQemuAgentOffline = errors.New("LXD VM agent is not currently running")
 
 type monitorHook func(m *qmp.Monitor) error
@@ -1998,7 +2001,7 @@ func (d *qemu) advertiseVsockAddress() error {
 		return fmt.Errorf("Failed getting agent client handle: %w", err)
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), agentConnectTimeout)
 	defer cancel()
 
 	agent, err := lxd.ConnectLXDHTTPWithContext(ctx, nil, client)
@@ -8405,7 +8408,7 @@ func (d *qemu) agentGetState() (*api.InstanceState, error) {
 		return nil, err
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), agentConnectTimeout)
 	defer cancel()
 
 	agent, err := lxd.ConnectLXDHTTPWithContext(ctx, nil, client)
@@ -8979,7 +8982,7 @@ func (d *qemu) devlxdEventSend(eventType string, eventMessage map[string]any) er
 		return err
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), agentConnectTimeout)
 	defer cancel()
 
 	agent, err := lxd.ConnectLXDHTTPWithContext(ctx, nil, client)
