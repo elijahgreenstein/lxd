@@ -2022,7 +2022,7 @@ This also introduces a change whereby network access is controlled by the projec
 
 ## `loki`
 
-This adds support for sending life cycle and logging events to a Loki server.
+This adds support for sending events to a Loki server.
 
 It adds the following global configuration keys:
 
@@ -2031,7 +2031,7 @@ It adds the following global configuration keys:
 * {config:option}`server-loki:loki.auth.username` and {config:option}`server-loki:loki.auth.password`: Used if Loki is behind a reverse proxy with basic authentication enabled
 * {config:option}`server-loki:loki.labels`: Comma-separated list of values which are to be used as labels for Loki events.
 * {config:option}`server-loki:loki.loglevel`: Minimum log level for events sent to the Loki server.
-* {config:option}`server-loki:loki.types`: Types of events which are to be sent to the Loki server (`lifecycle` and/or `logging`).
+* {config:option}`server-loki:loki.types`: Types of events which are to be sent to the Loki server (any combination of `lifecycle`, `logging`, `ovn`, and `security`).
 
 ## `acme`
 
