@@ -279,8 +279,19 @@ func getFileSpecs(f *ast.File) ([]Spec, map[*ast.StructType]*Spec, error) {
 
 		// If not deferred, validate and append to spec list.
 		if !deferred {
-			if newSpec.PrimaryKey.FieldName == "" {
-				return nil, nil, fmt.Errorf("Cannot find a primary key for struct %q", newSpec.StructName)
+			if !newSpec.hasPrimaryKey() {
+				var hasPrimary bool
+				for i, f := range newSpec.Fields {
+					if f.ColumnName == tableName+".id" {
+						newSpec.Fields[i].Primary = true
+						hasPrimary = true
+						break
+					}
+				}
+
+				if !hasPrimary {
+					return nil, nil, fmt.Errorf("Failed finding a primary key for %q", newSpec.StructName)
+				}
 			}
 
 			if len(newSpec.Fields) == 0 {
