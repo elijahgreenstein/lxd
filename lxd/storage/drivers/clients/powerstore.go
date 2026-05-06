@@ -298,7 +298,7 @@ func (c *PowerStoreClient) login() (*powerStoreSession, error) {
 		return nil, errors.New("Failed logging into PowerStore: Password change required")
 	}
 
-	resp := &http.Response{Header: http.Header{}}
+	resp := &http.Response{Header: respHeaders}
 
 	// Parse CSRF token from response headers.
 	csrf := resp.Header.Get(powerStoreCSRFHeaderName)
