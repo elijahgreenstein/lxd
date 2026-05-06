@@ -9,6 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/fs"
 	"math"
 	"net"
 	"net/http"
@@ -4431,7 +4432,7 @@ func (d *lxc) Update(ctx context.Context, args db.InstanceArgs, actionType insta
 	}
 
 	err = d.UpdateBackupFile()
-	if err != nil && !os.IsNotExist(err) {
+	if err != nil && !errors.Is(err, fs.ErrNotExist) {
 		return fmt.Errorf("Failed writing backup file: %w", err)
 	}
 
@@ -5363,6 +5364,12 @@ func (d *lxc) MigrateReceive(ctx context.Context, args instance.MigrateReceiveAr
 
 		for _, op := range snapOps {
 			op.Done(nil)
+		}
+
+		// Update the backup file after all mutations have completed.
+		err = d.UpdateBackupFile()
+		if err != nil {
+			return fmt.Errorf("Failed writing backup file: %w", err)
 		}
 
 		return nil
