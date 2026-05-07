@@ -761,8 +761,9 @@ func (c *PowerStoreClient) GetVolume(volumeID string) (*PowerStoreVolume, error)
 // CreateVolume creates a new volume.
 func (c *PowerStoreClient) CreateVolume(volumeName string, sizeBytes int64) (volumeID string, err error) {
 	req := map[string]any{
-		"name": volumeName,
-		"size": sizeBytes,
+		"name":        volumeName,
+		"size":        sizeBytes,
+		"description": "LXD volume",
 	}
 
 	var resp powerStoreResourceID
@@ -831,7 +832,7 @@ func (c *PowerStoreClient) GetVolumeSnapshotID(volumeID string, snapshotName str
 func (c *PowerStoreClient) CreateVolumeSnapshot(volumeID string, snapshotName string) (string, error) {
 	req := map[string]any{
 		"name":        snapshotName,
-		"description": "LXD Volume Snapshot of " + snapshotName,
+		"description": "LXD volume snapshot (Parent volume ID: " + volumeID + ")",
 	}
 
 	var resp powerStoreResourceID
@@ -884,7 +885,7 @@ func (c *PowerStoreClient) ResizeVolume(volumeID string, newSize int64) error {
 func (c *PowerStoreClient) CloneVolume(srcVolumeOrSnapshotID string, dstVolumeName string) (string, error) {
 	req := map[string]any{
 		"name":        dstVolumeName,
-		"description": `Cloned from volume with PowerStore ID "` + srcVolumeOrSnapshotID + `"`,
+		"description": `LXD volume (Source volume ID: "` + srcVolumeOrSnapshotID + `")`,
 	}
 
 	var resp powerStoreResourceID
