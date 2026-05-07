@@ -142,12 +142,7 @@ func LoadClusterLinkAndCert(ctx context.Context, tx *sql.Tx, name string) (id in
 		return 0, nil, nil, fmt.Errorf("No certificate found for cluster link identity %q", identity.Name)
 	}
 
-	certBlock, _ := pem.Decode([]byte(certs[identity.ID][0]))
-	if certBlock == nil {
-		return 0, nil, nil, fmt.Errorf("Failed decoding certificate for cluster link identity %q", identity.Name)
-	}
-
-	cert, err = x509.ParseCertificate(certBlock.Bytes)
+	cert, err = shared.ParseCert([]byte(certs[identity.ID][0]))
 	if err != nil {
 		return 0, nil, nil, fmt.Errorf("Failed extracting certificate from cluster link identity: %w", err)
 	}
