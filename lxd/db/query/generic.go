@@ -43,12 +43,12 @@ type Creatable interface {
 }
 
 // Referenceable is a type that knows how to reference itself in the database.
-// We need the table name and the column + value for the primary key.
+// We need the table name and the columns and values of the primary key.
 type Referenceable interface {
 	APINamer
 	TableNamer
-	PKColumn() string
-	PKValue() any
+	PKColumns() []string
+	PKValues() []any
 }
 
 // Updatable defines a type that knows how to update itself.
@@ -119,15 +119,19 @@ func Create(ctx context.Context, tx *sql.Tx, c Creatable) (int64, error) {
 // directly, and then call Update. This pattern is encouraged so that we get an entity, perform an authorization check,
 // and then update the values.
 func UpdateByPrimaryKey(ctx context.Context, tx *sql.Tx, u Updatable) error {
-	tableName := u.TableName()
-
 	var b strings.Builder
 	b.WriteString(u.UpdateStmt())
 	b.WriteString(" WHERE ")
-	b.WriteString(u.PKColumn())
-	b.WriteString(" = ?")
+	cols := u.PKColumns()
+	for i, c := range cols {
+		b.WriteString(c)
+		b.WriteString(" = ?")
+		if i < len(cols)-1 {
+			b.WriteString(" AND ")
+		}
+	}
 
-	res, err := tx.ExecContext(ctx, b.String(), append(u.UpdateValues(), u.PKValue())...)
+	res, err := tx.ExecContext(ctx, b.String(), append(u.UpdateValues(), u.PKValues()...)...)
 	if err != nil {
 		if IsConflictErr(err) {
 			return conflictErr(u)
@@ -142,7 +146,7 @@ func UpdateByPrimaryKey(ctx context.Context, tx *sql.Tx, u Updatable) error {
 	}
 
 	if n == 0 || n > 1 {
-		err = fmt.Errorf("Update by primary key where `%s.%s = %v` affected %d rows", tableName, u.PKColumn(), u.PKValue(), n)
+		err = fmt.Errorf("Update by primary key affected %d rows", n)
 		if n == 0 {
 			// Don't return a not found error here. If we try to update something by primary key and it is not present,
 			// there is an error in our business logic (e.g. we may need to prevent deletion of the resource until an
@@ -310,10 +314,16 @@ func DeleteByPrimaryKey[T Referenceable](ctx context.Context, tx *sql.Tx, t T) e
 	b.WriteString("DELETE FROM ")
 	b.WriteString(tableName)
 	b.WriteString(" WHERE ")
-	b.WriteString(t.PKColumn())
-	b.WriteString(" = ?")
+	cols := t.PKColumns()
+	for i, c := range cols {
+		b.WriteString(c)
+		b.WriteString(" = ?")
+		if i < len(cols)-1 {
+			b.WriteString(" AND ")
+		}
+	}
 
-	result, err := tx.ExecContext(ctx, b.String(), t.PKValue())
+	result, err := tx.ExecContext(ctx, b.String(), t.PKValues()...)
 	if err != nil {
 		return fmt.Errorf("Failed deleting from table %q: %w", tableName, err)
 	}
@@ -324,7 +334,7 @@ func DeleteByPrimaryKey[T Referenceable](ctx context.Context, tx *sql.Tx, t T) e
 	}
 
 	if deleted == 0 || deleted > 1 {
-		err = fmt.Errorf("Deletion by primary key where `%s.%s = %v` affected %d rows", tableName, t.PKColumn(), t.PKValue(), deleted)
+		err = fmt.Errorf("Deletion by primary key affected %d rows", deleted)
 		if deleted == 0 {
 			// Don't return a not found error here. If we try to delete something by primary key and it is not present,
 			// there is an error in our business logic (e.g. we may need a lock).

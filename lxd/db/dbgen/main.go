@@ -226,10 +226,20 @@ func getFileSpecs(f *ast.File) ([]Spec, map[*ast.StructType]*Spec, error) {
 				FieldName: field.Names[0].Name,
 			}
 
-			// Tags only contain column names.
-			newFieldSpec.ColumnName = reflect.StructTag(strings.Trim(field.Tag.Value, "`")).Get("db")
-			if newFieldSpec.ColumnName == "" {
+			// Tags contain column names and the supplemental "primary" indicator.
+			tag := reflect.StructTag(strings.Trim(field.Tag.Value, "`")).Get("db")
+			if tag == "" {
 				continue
+			}
+
+			var supplemental string
+			newFieldSpec.ColumnName, supplemental, ok = strings.Cut(tag, ",")
+			if ok {
+				if supplemental != "primary" {
+					return nil, nil, fmt.Errorf("Invalid supplemental tag info %q for field %q in struct %q", supplemental, newFieldSpec.FieldName, newSpec.StructName)
+				}
+
+				newFieldSpec.Primary = true
 			}
 
 			// Check if it is only the column name (without the table name as a qualifier)
@@ -264,18 +274,24 @@ func getFileSpecs(f *ast.File) ([]Spec, map[*ast.StructType]*Spec, error) {
 				}
 			}
 
-			// Hardcode primary key as "id" column, as that is always true in LXD.
-			if newFieldSpec.ColumnName == tableName+".id" {
-				newSpec.PrimaryKey = newFieldSpec
-			}
-
 			newSpec.Fields = append(newSpec.Fields, newFieldSpec)
 		}
 
 		// If not deferred, validate and append to spec list.
 		if !deferred {
-			if newSpec.PrimaryKey.FieldName == "" {
-				return nil, nil, fmt.Errorf("Cannot find a primary key for struct %q", newSpec.StructName)
+			if !newSpec.hasPrimaryKey() {
+				var hasPrimary bool
+				for i, f := range newSpec.Fields {
+					if f.ColumnName == tableName+".id" {
+						newSpec.Fields[i].Primary = true
+						hasPrimary = true
+						break
+					}
+				}
+
+				if !hasPrimary {
+					return nil, nil, fmt.Errorf("Failed finding a primary key for %q", newSpec.StructName)
+				}
 			}
 
 			if len(newSpec.Fields) == 0 {
@@ -291,7 +307,7 @@ func getFileSpecs(f *ast.File) ([]Spec, map[*ast.StructType]*Spec, error) {
 
 func getDeferredSpecs(allSpecs []Spec, deferredDecls map[*ast.StructType]*Spec) ([]Spec, error) {
 	for structTypeSpec, newSpec := range deferredDecls {
-		if newSpec.PrimaryKey.FieldName != "" {
+		if newSpec.hasPrimaryKey() {
 			return nil, fmt.Errorf("Struct %q contains both a referenced type and a primary key", newSpec.StructName)
 		}
 
