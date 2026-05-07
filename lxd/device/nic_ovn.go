@@ -890,19 +890,6 @@ func (d *nicOVN) Update(oldDevices deviceConfig.Devices, isRunning bool) error {
 			}
 		}
 
-		// Remove old DHCP reservations and DNS records before re-adding with new IPs.
-		if ipv4Changed || ipv6Changed {
-			err := d.network.InstanceDevicePortRemove(d.inst.LocalConfig()["volatile.uuid"], d.name, oldConfig)
-			if err != nil {
-				return fmt.Errorf("Failed removing old instance device port config: %w", err)
-			}
-
-			err = d.network.InstanceDevicePortAdd(d.inst.LocalConfig()["volatile.uuid"], d.name, d.config)
-			if err != nil {
-				return fmt.Errorf("Failed adding updated instance device port config: %w", err)
-			}
-		}
-
 		// Load uplink network config.
 		uplinkNetworkName := d.network.Config()["network"]
 
@@ -919,16 +906,32 @@ func (d *nicOVN) Update(oldDevices deviceConfig.Devices, isRunning bool) error {
 			return fmt.Errorf("Failed loading uplink network %q: %w", uplinkNetworkName, err)
 		}
 
-		// Update OVN logical switch port for instance.
-		_, err = d.network.InstanceDevicePortStart(&network.OVNInstanceNICSetupOpts{
+		nicSetupOpts := &network.OVNInstanceNICSetupOpts{
 			InstanceUUID: d.inst.LocalConfig()["volatile.uuid"],
 			DNSName:      d.inst.Name(),
 			DeviceName:   d.name,
 			DeviceConfig: d.config,
 			UplinkConfig: uplink.Config,
-		}, removedACLs)
+		}
+
+		// Remove the port only when IP addresses have changed.
+		if ipv4Changed || ipv6Changed {
+			err = d.network.InstanceDevicePortRemove(d.inst.LocalConfig()["volatile.uuid"], d.name, oldConfig)
+			if err != nil {
+				return fmt.Errorf("Failed removing old instance device port config: %w", err)
+			}
+		}
+
+		// Always try to add the port to apply any ACL changes.
+		_, err = d.network.InstanceDevicePortAdd(nicSetupOpts, removedACLs)
 		if err != nil {
-			return fmt.Errorf("Failed updating OVN port: %w", err)
+			return fmt.Errorf("Failed adding updated instance device port config: %w", err)
+		}
+
+		// Signal a restart of the device.
+		err = d.network.InstanceDevicePortStart(d.inst)
+		if err != nil {
+			return fmt.Errorf("Failed starting up OVN port: %w", err)
 		}
 
 		if isRunning {
