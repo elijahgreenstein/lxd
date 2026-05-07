@@ -39,12 +39,14 @@ func (a AuthGroupsRow) UpdateValues() []any {
 	return []any{a.Name, a.Description}
 }
 
-// PKColumn returns the column name for the primary key of a [AuthGroupsRow] entity used during an update.
+// PKColumns returns the column names for the primary key of a [AuthGroupsRow] entity used during an update.
+// The returned slice must have the same number of elements as PKValues.
 func (a AuthGroupsRow) PKColumns() []string {
 	return []string{"id"}
 }
 
-// PKValue returns the value for the primary key of a [AuthGroupsRow] entity used during an update.
+// PKValues returns the values for the primary key of a [AuthGroupsRow] entity used during an update.
+// The returned slice must have the same number of elements as PKColumns.
 func (a AuthGroupsRow) PKValues() []any {
 	return []any{a.ID}
 }
@@ -95,12 +97,14 @@ func (c CertificatesRow) UpdateValues() []any {
 	return []any{c.Fingerprint, c.Certificate}
 }
 
-// PKColumn returns the column name for the primary key of a [CertificatesRow] entity used during an update.
+// PKColumns returns the column names for the primary key of a [CertificatesRow] entity used during an update.
+// The returned slice must have the same number of elements as PKValues.
 func (c CertificatesRow) PKColumns() []string {
 	return []string{"id"}
 }
 
-// PKValue returns the value for the primary key of a [CertificatesRow] entity used during an update.
+// PKValues returns the values for the primary key of a [CertificatesRow] entity used during an update.
+// The returned slice must have the same number of elements as PKColumns.
 func (c CertificatesRow) PKValues() []any {
 	return []any{c.ID}
 }
@@ -152,12 +156,14 @@ func (c ClusterLinkRow) UpdateValues() []any {
 	return []any{c.IdentityID, c.Name, c.Description, c.Type}
 }
 
-// PKColumn returns the column name for the primary key of a [ClusterLinkRow] entity used during an update.
+// PKColumns returns the column names for the primary key of a [ClusterLinkRow] entity used during an update.
+// The returned slice must have the same number of elements as PKValues.
 func (c ClusterLinkRow) PKColumns() []string {
 	return []string{"id"}
 }
 
-// PKValue returns the value for the primary key of a [ClusterLinkRow] entity used during an update.
+// PKValues returns the values for the primary key of a [ClusterLinkRow] entity used during an update.
+// The returned slice must have the same number of elements as PKColumns.
 func (c ClusterLinkRow) PKValues() []any {
 	return []any{c.ID}
 }
@@ -210,12 +216,14 @@ func (i IdentitiesRow) UpdateValues() []any {
 	return []any{i.AuthMethod, i.Type, i.Identifier, i.Name, i.Metadata}
 }
 
-// PKColumn returns the column name for the primary key of a [IdentitiesRow] entity used during an update.
+// PKColumns returns the column names for the primary key of a [IdentitiesRow] entity used during an update.
+// The returned slice must have the same number of elements as PKValues.
 func (i IdentitiesRow) PKColumns() []string {
 	return []string{"id"}
 }
 
-// PKValue returns the value for the primary key of a [IdentitiesRow] entity used during an update.
+// PKValues returns the values for the primary key of a [IdentitiesRow] entity used during an update.
+// The returned slice must have the same number of elements as PKColumns.
 func (i IdentitiesRow) PKValues() []any {
 	return []any{i.ID}
 }
@@ -334,12 +342,14 @@ func (p PlacementGroupsRow) UpdateValues() []any {
 	return []any{p.Name, p.Description, p.ProjectID}
 }
 
-// PKColumn returns the column name for the primary key of a [PlacementGroupsRow] entity used during an update.
+// PKColumns returns the column names for the primary key of a [PlacementGroupsRow] entity used during an update.
+// The returned slice must have the same number of elements as PKValues.
 func (p PlacementGroupsRow) PKColumns() []string {
 	return []string{"id"}
 }
 
-// PKValue returns the value for the primary key of a [PlacementGroupsRow] entity used during an update.
+// PKValues returns the values for the primary key of a [PlacementGroupsRow] entity used during an update.
+// The returned slice must have the same number of elements as PKColumns.
 func (p PlacementGroupsRow) PKValues() []any {
 	return []any{p.ID}
 }
@@ -428,12 +438,14 @@ func (r ReplicatorRow) UpdateValues() []any {
 	return []any{r.Name, r.ProjectID, r.Description, r.LastRunDate, r.LastRunStatus}
 }
 
-// PKColumn returns the column name for the primary key of a [ReplicatorRow] entity used during an update.
+// PKColumns returns the column names for the primary key of a [ReplicatorRow] entity used during an update.
+// The returned slice must have the same number of elements as PKValues.
 func (r ReplicatorRow) PKColumns() []string {
 	return []string{"id"}
 }
 
-// PKValue returns the value for the primary key of a [ReplicatorRow] entity used during an update.
+// PKValues returns the values for the primary key of a [ReplicatorRow] entity used during an update.
+// The returned slice must have the same number of elements as PKColumns.
 func (r ReplicatorRow) PKValues() []any {
 	return []any{r.ID}
 }
