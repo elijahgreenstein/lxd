@@ -4769,7 +4769,7 @@ func (n *ovn) handleDependencyChange(uplinkName string, uplinkConfig map[string]
 
 						// Re-add logical switch port to apply the l2proxy DNAT_AND_SNAT rules.
 						n.logger.Debug("Re-adding instance OVN NIC port to apply ingress mode changes", logger.Ctx{"project": inst.Project, "instance": inst.Name, "device": devName})
-						_, err = n.InstanceDevicePortStart(&OVNInstanceNICSetupOpts{
+						_, err = n.InstanceDevicePortAdd(&OVNInstanceNICSetupOpts{
 							InstanceUUID: instanceUUID,
 							DNSName:      inst.Name,
 							DeviceName:   devName,
