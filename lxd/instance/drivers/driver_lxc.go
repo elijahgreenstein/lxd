@@ -3571,6 +3571,14 @@ func (d *lxc) Rename(ctx context.Context, newName string, applyTemplateTrigger b
 		return errors.New("Renaming of running instance not allowed")
 	}
 
+	// Wait for any pending file operations to complete so the rootfs can be
+	// unmounted safely before the storage rename, otherwise the rename may
+	// race with the unmount and fail. Snapshots cannot have file operations
+	// in flight, so this is not required for them.
+	if !d.IsSnapshot() {
+		d.stopForkfile(false)
+	}
+
 	// Clean things up.
 	d.cleanup()
 
