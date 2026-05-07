@@ -2,8 +2,10 @@ package drivers
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
+	"io/fs"
 	"net/http"
 	"os"
 	"slices"
@@ -646,7 +648,7 @@ func (d *powerstore) DeleteVolume(vol Volume, progressReporter ioprogress.Progre
 		}
 
 		err = os.RemoveAll(mountPath)
-		if err != nil && !os.IsNotExist(err) {
+		if err != nil && !errors.Is(err, fs.ErrNotExist) {
 			return fmt.Errorf("Failed removing directory %q: %w", mountPath, err)
 		}
 	}
@@ -1159,7 +1161,7 @@ func (d *powerstore) DeleteVolumeSnapshot(snapVol Volume, progressReporter iopro
 		}
 
 		err = os.Remove(mountPath)
-		if err != nil && !os.IsNotExist(err) {
+		if err != nil && !errors.Is(err, fs.ErrNotExist) {
 			return fmt.Errorf("Failed removing %q: %w", mountPath, err)
 		}
 	}
