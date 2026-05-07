@@ -1008,12 +1008,7 @@ func clusterLinkActivate(s *state.State, r *http.Request, req api.ClusterLinksPo
 		return response.BadRequest(errors.New("Cluster certificate required"))
 	}
 
-	block, _ := pem.Decode([]byte(req.ClusterCertificate))
-	if block == nil {
-		return response.BadRequest(errors.New("Failed decoding certificate"))
-	}
-
-	cert, err := x509.ParseCertificate(block.Bytes)
+	cert, err := shared.ParseCert([]byte(req.ClusterCertificate))
 	if err != nil {
 		// This should not happen.
 		return response.InternalError(err)
@@ -1409,12 +1404,7 @@ func clusterLinkStateGet(d *Daemon, r *http.Request) response.Response {
 			return fmt.Errorf("No certificate found for cluster link identity %q", identity.Name)
 		}
 
-		certBlock, _ := pem.Decode([]byte(certs[identity.ID][0]))
-		if certBlock == nil {
-			return fmt.Errorf("Failed decoding certificate for cluster link identity %q", identity.Name)
-		}
-
-		targetCert, err = x509.ParseCertificate(certBlock.Bytes)
+		targetCert, err = shared.ParseCert([]byte(certs[identity.ID][0]))
 		return err
 	})
 	if err != nil {
