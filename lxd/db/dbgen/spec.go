@@ -28,6 +28,18 @@ func (s *Spec) hasPrimaryKey() bool {
 	return false
 }
 
+// unqualifiedColumnName returns the column name for the field spec without the `<table_name>.` prepended and boolean
+// indicating if the column is defined on the spec table (e.g. it is not joined or coalesced). If the column is not
+// defined on the spec table then an empty string is returned.
+func (s *Spec) unqualifiedColumnName(field FieldSpec) (string, bool) {
+	col, ok := strings.CutPrefix(field.ColumnName, s.TableName+".")
+	if !ok {
+		return "", false
+	}
+
+	return col, true
+}
+
 // FieldSpec is a simple mapping of struct field name to database column name.
 type FieldSpec struct {
 	FieldName  string
@@ -135,8 +147,8 @@ func (s *Spec) receiver() rune {
 func (s *Spec) createStmt() string {
 	cols := make([]string, 0, len(s.Fields))
 	for _, f := range s.Fields {
-		unqualifiedColName, ok := strings.CutPrefix(f.ColumnName, s.TableName+".")
-		if !ok || unqualifiedColName == "id" || f.SkipCreate {
+		unqualifiedColName, ok := s.unqualifiedColumnName(f)
+		if !ok || unqualifiedColName == columnID || f.SkipCreate {
 			continue
 		}
 
@@ -149,8 +161,8 @@ func (s *Spec) createStmt() string {
 func (s *Spec) updateStmt() string {
 	cols := make([]string, 0, len(s.Fields))
 	for _, f := range s.Fields {
-		unqualifiedColName, ok := strings.CutPrefix(f.ColumnName, s.TableName+".")
-		if !ok || unqualifiedColName == "id" || f.SkipUpdate {
+		unqualifiedColName, ok := s.unqualifiedColumnName(f)
+		if !ok || unqualifiedColName == columnID || f.SkipUpdate {
 			continue
 		}
 
@@ -192,12 +204,12 @@ func (s *Spec) scanColumns() string {
 func (s *Spec) createValues() string {
 	values := make([]string, 0, len(s.Fields))
 	for _, f := range s.Fields {
-		unqualifiedColName, ok := strings.CutPrefix(f.ColumnName, s.TableName+".")
+		unqualifiedColName, ok := s.unqualifiedColumnName(f)
 		if !ok {
 			continue
 		}
 
-		if unqualifiedColName == "id" || f.SkipCreate {
+		if unqualifiedColName == columnID || f.SkipCreate {
 			continue
 		}
 
@@ -210,12 +222,12 @@ func (s *Spec) createValues() string {
 func (s *Spec) updateValues() string {
 	values := make([]string, 0, len(s.Fields))
 	for _, f := range s.Fields {
-		unqualifiedColName, ok := strings.CutPrefix(f.ColumnName, s.TableName+".")
+		unqualifiedColName, ok := s.unqualifiedColumnName(f)
 		if !ok {
 			continue
 		}
 
-		if unqualifiedColName == "id" || f.SkipUpdate {
+		if unqualifiedColName == columnID || f.SkipUpdate {
 			continue
 		}
 
