@@ -26,7 +26,7 @@ with open(sys.argv[1]) as file:
     for line in file:
         if dangling_permission_regex.search(line):
             sys.stderr.write(line)
-            exit(1)
+            sys.exit(1)
 
         if not found and not stacktrace_regex.search(line):
             # Nothing found yet but lets retain the last log line
@@ -47,7 +47,7 @@ with open(sys.argv[1]) as file:
 
     if found:
         # Panic found, failure
-        exit(1)
+        sys.exit(1)
 
 # No panic found, success
-exit(0)
+sys.exit(0)
