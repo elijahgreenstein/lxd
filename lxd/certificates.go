@@ -968,12 +968,7 @@ func doCertificateUpdate(ctx context.Context, d *Daemon, cert dbCluster.Certific
 	certChanged := false
 	if req.Certificate != "" && cert.Certificate != req.Certificate {
 		// Add supplied certificate.
-		block, _ := pem.Decode([]byte(req.Certificate))
-		if block == nil {
-			return response.BadRequest(errors.New("Invalid certificate material"))
-		}
-
-		x509Cert, err := x509.ParseCertificate(block.Bytes)
+		x509Cert, err := shared.ParseCert([]byte(req.Certificate))
 		if err != nil {
 			return response.BadRequest(fmt.Errorf("Invalid certificate material: %w", err))
 		}
@@ -1066,12 +1061,7 @@ func doCertificateUpdateUnprivileged(ctx context.Context, s *state.State, cert d
 	}
 
 	// Add supplied certificate.
-	block, _ := pem.Decode([]byte(req.Certificate))
-	if block == nil {
-		return response.BadRequest(errors.New("Invalid certificate material"))
-	}
-
-	x509Cert, err := x509.ParseCertificate(block.Bytes)
+	x509Cert, err := shared.ParseCert([]byte(req.Certificate))
 	if err != nil {
 		return response.BadRequest(fmt.Errorf("Invalid certificate material: %w", err))
 	}
@@ -1187,9 +1177,7 @@ func certificateDelete(d *Daemon, r *http.Request) response.Response {
 			response.Forbidden(errors.New("Cannot delete certificate"))
 		}
 
-		certBlock, _ := pem.Decode([]byte(certInfo.Certificate))
-
-		cert, err := x509.ParseCertificate(certBlock.Bytes)
+		cert, err := shared.ParseCert([]byte(certInfo.Certificate))
 		if err != nil {
 			// This should not happen
 			return response.InternalError(err)
