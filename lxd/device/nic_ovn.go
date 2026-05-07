@@ -467,21 +467,18 @@ func (d *nicOVN) Add() error {
 		return fmt.Errorf("Failed loading uplink network %q: %w", uplinkNetworkName, err)
 	}
 
-	err = d.network.InstanceDevicePortAdd(d.inst.LocalConfig()["volatile.uuid"], d.name, d.config)
-	if err != nil {
-		return err
-	}
-
-	// Add new OVN logical switch port for instance.
-	_, err = d.network.InstanceDevicePortStart(&network.OVNInstanceNICSetupOpts{
+	nicSetupOpts := &network.OVNInstanceNICSetupOpts{
 		InstanceUUID: d.inst.LocalConfig()["volatile.uuid"],
 		DNSName:      d.inst.Name(),
 		DeviceName:   d.name,
 		DeviceConfig: d.config,
 		UplinkConfig: uplink.Config,
-	}, nil)
+	}
+
+	// Add new OVN logical switch port for instance.
+	_, err = d.network.InstanceDevicePortAdd(nicSetupOpts, nil)
 	if err != nil {
-		return fmt.Errorf("Failed setting up OVN port: %w", err)
+		return fmt.Errorf("Failed adding OVN port: %w", err)
 	}
 
 	return nil
