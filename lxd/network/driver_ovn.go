@@ -4200,6 +4200,25 @@ func (n *ovn) InstanceDevicePortAdd(opts *OVNInstanceNICSetupOpts, securityACLsR
 	return instancePortName, nil
 }
 
+// InstanceDevicePortStart configures the security ACL port group memberships and default ACL rules for an
+// instance device port that has already been created by InstanceDevicePortAdd.
+// Accepts a list of ACLs being removed from the NIC device (if called as part of a NIC update).
+// Returns the logical switch port name.
+func (n *ovn) InstanceDevicePortStart(opts *OVNInstanceNICSetupOpts, securityACLsRemove []string) error {
+	if opts.InstanceUUID == "" {
+		return errors.New("Instance UUID is required")
+	}
+
+	instancePortName := n.getInstanceDevicePortName(opts.InstanceUUID, opts.DeviceName)
+
+	revert := revert.New()
+	defer revert.Fail()
+
+	client, err := openvswitch.NewOVN(n.state.GlobalConfig.NetworkOVNNorthboundConnection(), n.state.GlobalConfig.NetworkOVNSSL)
+	if err != nil {
+		return fmt.Errorf("Failed getting OVN client: %w", err)
+	}
+
 	// Merge network and NIC assigned security ACL lists.
 	netACLNames := shared.SplitNTrimSpace(n.config["security.acls"], ",", -1, true)
 	nicACLNames := shared.SplitNTrimSpace(opts.DeviceConfig["security.acls"], ",", -1, true)
@@ -4217,7 +4236,7 @@ func (n *ovn) InstanceDevicePortAdd(opts *OVNInstanceNICSetupOpts, securityACLsR
 	// Get logical port UUID.
 	portUUID, err := client.LogicalSwitchPortUUID(instancePortName)
 	if err != nil || portUUID == "" {
-		return "", fmt.Errorf("Failed getting logical port UUID for security ACL removal: %w", err)
+		return fmt.Errorf("Failed getting logical port UUID for security ACL removal: %w", err)
 	}
 
 	// Add NIC port to network port group (this includes the port in the @internal subject for ACL rules).
@@ -4234,7 +4253,7 @@ func (n *ovn) InstanceDevicePortAdd(opts *OVNInstanceNICSetupOpts, securityACLsR
 			return err
 		})
 		if err != nil {
-			return "", fmt.Errorf("Failed getting network ACL IDs for security ACL setup: %w", err)
+			return fmt.Errorf("Failed getting network ACL IDs for security ACL setup: %w", err)
 		}
 
 		// Add port to ACLs requested.
@@ -4246,7 +4265,7 @@ func (n *ovn) InstanceDevicePortAdd(opts *OVNInstanceNICSetupOpts, securityACLsR
 
 			cleanup, err := acl.OVNEnsureACLs(context.TODO(), n.state, n.logger, client, n.Project(), aclNameIDs, aclNets, nicACLNames, false)
 			if err != nil {
-				return "", fmt.Errorf("Failed ensuring security ACLs are configured in OVN for instance: %w", err)
+				return fmt.Errorf("Failed ensuring security ACLs are configured in OVN for instance: %w", err)
 			}
 
 			revert.Add(cleanup)
@@ -4254,7 +4273,7 @@ func (n *ovn) InstanceDevicePortAdd(opts *OVNInstanceNICSetupOpts, securityACLsR
 			for _, aclName := range nicACLNames {
 				aclID, found := aclNameIDs[aclName]
 				if !found {
-					return "", fmt.Errorf("Cannot find security ACL ID for %q", aclName)
+					return fmt.Errorf("Cannot find security ACL ID for %q", aclName)
 				}
 
 				// Add NIC port to ACL port group.
@@ -4274,7 +4293,7 @@ func (n *ovn) InstanceDevicePortAdd(opts *OVNInstanceNICSetupOpts, securityACLsR
 
 			aclID, found := aclNameIDs[aclName]
 			if !found {
-				return "", fmt.Errorf("Cannot find security ACL ID for %q", aclName)
+				return fmt.Errorf("Cannot find security ACL ID for %q", aclName)
 			}
 
 			// Remove NIC port from ACL port group.
@@ -4290,7 +4309,7 @@ func (n *ovn) InstanceDevicePortAdd(opts *OVNInstanceNICSetupOpts, securityACLsR
 	n.logger.Debug("Applying instance NIC port group member change sets")
 	err = client.PortGroupMemberChange(addChangeSet, removeChangeSet)
 	if err != nil {
-		return "", fmt.Errorf("Failed applying OVN port group member change sets for instance NIC: %w", err)
+		return fmt.Errorf("Failed applying OVN port group member change sets for instance NIC: %w", err)
 	}
 
 	// Set the automatic default ACL rule for the port.
@@ -4301,21 +4320,21 @@ func (n *ovn) InstanceDevicePortAdd(opts *OVNInstanceNICSetupOpts, securityACLsR
 		logPrefix := fmt.Sprintf("%s-%s", opts.InstanceUUID, opts.DeviceName)
 		err = acl.OVNApplyInstanceNICDefaultRules(client, acl.OVNIntSwitchPortGroupName(n.ID()), logPrefix, instancePortName, ingressAction, ingressLogged, egressAction, egressLogged)
 		if err != nil {
-			return "", fmt.Errorf("Failed applying OVN default ACL rules for instance NIC: %w", err)
+			return fmt.Errorf("Failed applying OVN default ACL rules for instance NIC: %w", err)
 		}
 
 		n.logger.Debug("Set NIC default rule", logger.Ctx{"port": instancePortName, "ingressAction": ingressAction, "ingressLogged": ingressLogged, "egressAction": egressAction, "egressLogged": egressLogged})
 	} else {
 		err = client.PortGroupPortClearACLRules(acl.OVNIntSwitchPortGroupName(n.ID()), instancePortName)
 		if err != nil {
-			return "", fmt.Errorf("Failed clearing OVN default ACL rules for instance NIC: %w", err)
+			return fmt.Errorf("Failed clearing OVN default ACL rules for instance NIC: %w", err)
 		}
 
 		n.logger.Debug("Cleared NIC default rule", logger.Ctx{"port": instancePortName})
 	}
 
 	revert.Success()
-	return instancePortName, nil
+	return nil
 }
 
 // instanceDeviceACLDefaults returns the action and logging mode to use for the specified direction's default rule.
