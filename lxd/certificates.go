@@ -1174,7 +1174,7 @@ func certificateDelete(d *Daemon, r *http.Request) response.Response {
 	// Non-admins are able to delete only their own certificate.
 	if !userCanEditCertificate {
 		if r.TLS == nil {
-			response.Forbidden(errors.New("Cannot delete certificate"))
+			return response.Forbidden(errors.New("Cannot delete certificate"))
 		}
 
 		cert, err := shared.ParseCert([]byte(certInfo.Certificate))
