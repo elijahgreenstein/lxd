@@ -506,9 +506,6 @@ func createFromConversion(r *http.Request, s *state.State, projectName string, p
 	}
 
 	revert.Add(cleanup)
-	if err != nil {
-		return response.SmartError(fmt.Errorf("Failed getting exclusive access to instance: %w", err))
-	}
 
 	revert.Add(func() { instOp.Done(err) })
 
