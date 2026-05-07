@@ -6836,6 +6836,12 @@ func (d *qemu) MigrateSend(ctx context.Context, args instance.MigrateSendArgs, p
 		offerHeader.Snapshots = make([]*migration.Snapshot, 0, len(srcConfig.Snapshots))
 
 		for i := range srcConfig.Snapshots {
+			if srcConfig.Snapshots[i] == nil {
+				err := fmt.Errorf("Invalid snapshot information for snapshot index %d", i)
+				op.Done(err)
+				return err
+			}
+
 			offerHeader.SnapshotNames = append(offerHeader.SnapshotNames, srcConfig.Snapshots[i].Name)
 			offerHeader.Snapshots = append(offerHeader.Snapshots, instance.SnapshotToProtobuf(srcConfig.Snapshots[i]))
 		}
