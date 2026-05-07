@@ -1786,7 +1786,7 @@ func instanceFindStoragePool(s *state.State, projectName string, req *api.Instan
 
 	// If there is just a single pool in the database, use that
 	if storagePool == "" {
-		logger.Debug("No valid storage pool in the container's local root disk device and profiles found")
+		logger.Debug("No valid storage pool in the instance's local root disk device and profiles found")
 
 		var pools []string
 
