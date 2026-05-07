@@ -535,7 +535,7 @@ func (d *powerstore) CreateVolumeFromCopy(vol VolumeCopy, srcVol VolumeCopy, all
 		return err
 	}
 
-	// Add reverted to delete destination volume, if not already added.
+	// Add reverter to delete destination volume, if not already added.
 	if deleteVolCopy {
 		revert.Add(func() { _ = d.DeleteVolume(vol.Volume, progressReporter) })
 	}
