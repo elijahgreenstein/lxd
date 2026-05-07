@@ -383,8 +383,10 @@ fine_grained: true"
 
   # The TLS identity can see and delete itself
   LXD_CONF="${LXD_CONF2}" lxc_remote auth identity list tls: --format csv | grep -wF "${tls_identity_fingerprint}"
+  [ "$(lxd sql global --format csv "SELECT COUNT(*) FROM certificates WHERE fingerprint = '${tls_identity_fingerprint}'")" = 1 ]
   LXD_CONF="${LXD_CONF2}" lxc_remote auth identity delete "tls:tls/${tls_identity_fingerprint}"
   ! lxc auth identity list --format csv | grep -F "${tls_identity_fingerprint}" || false
+  [ "$(lxd sql global --format csv "SELECT COUNT(*) FROM certificates WHERE fingerprint = '${tls_identity_fingerprint}'")" = 0 ]
 
   # The TLS identity is not trusted after deletion.
   LXD_CONF="${LXD_CONF2}" lxc_remote query tls:/1.0 | jq --exit-status '.auth == "untrusted"'
