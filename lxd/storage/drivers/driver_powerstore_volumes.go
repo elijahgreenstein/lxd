@@ -2,8 +2,10 @@ package drivers
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
+	"io/fs"
 	"net/http"
 	"os"
 	"slices"
@@ -646,7 +648,7 @@ func (d *powerstore) DeleteVolume(vol Volume, progressReporter ioprogress.Progre
 		}
 
 		err = os.RemoveAll(mountPath)
-		if err != nil && !os.IsNotExist(err) {
+		if err != nil && !errors.Is(err, fs.ErrNotExist) {
 			return fmt.Errorf("Failed removing directory %q: %w", mountPath, err)
 		}
 	}
@@ -934,6 +936,9 @@ func (d *powerstore) SetVolumeQuota(vol Volume, size string, allowUnsafeResize b
 		return nil
 	}
 
+	// Round size to a multiple of the block size if needed.
+	sizeBytes = d.roundVolumeBlockSizeBytes(vol, sizeBytes)
+
 	volID, err := d.getVolumeID(vol)
 	if err != nil {
 		return err
@@ -942,11 +947,6 @@ func (d *powerstore) SetVolumeQuota(vol Volume, size string, allowUnsafeResize b
 	psVol, err := client.GetVolume(volID)
 	if err != nil {
 		return fmt.Errorf("Failed retrieving volume %q: %w", vol.name, err)
-	}
-
-	// Do nothing if volume is already specified size (+/- 512 bytes).
-	if psVol.Size+512 > sizeBytes && psVol.Size-512 < sizeBytes {
-		return nil
 	}
 
 	// Only volume expansion is supported.
@@ -1159,7 +1159,7 @@ func (d *powerstore) DeleteVolumeSnapshot(snapVol Volume, progressReporter iopro
 		}
 
 		err = os.Remove(mountPath)
-		if err != nil && !os.IsNotExist(err) {
+		if err != nil && !errors.Is(err, fs.ErrNotExist) {
 			return fmt.Errorf("Failed removing %q: %w", mountPath, err)
 		}
 	}
