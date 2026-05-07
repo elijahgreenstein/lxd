@@ -3812,34 +3812,12 @@ func (n *ovn) InstanceDevicePortValidateExternalRoutes(deviceInstance instance.I
 	return nil
 }
 
-// InstanceDevicePortAdd adds empty DNS record (to indicate port has been added) and any DHCP reservations for
-// instance device port.
-func (n *ovn) InstanceDevicePortAdd(instanceUUID string, deviceName string, deviceConfig deviceConfig.Device) error {
-	instancePortName := n.getInstanceDevicePortName(instanceUUID, deviceName)
-
-	revert := revert.New()
-	defer revert.Fail()
-
-	client, err := openvswitch.NewOVN(n.state.GlobalConfig.NetworkOVNNorthboundConnection(), n.state.GlobalConfig.NetworkOVNSSL)
-	if err != nil {
-		return fmt.Errorf("Failed getting OVN client: %w", err)
-	}
-
-	dnsUUID, err := client.LogicalSwitchPortSetDNS(n.getIntSwitchName(), instancePortName, "", nil)
-	if err != nil {
-		return fmt.Errorf("Failed adding DNS record: %w", err)
-	}
-
-	revert.Add(func() { _ = client.LogicalSwitchPortDeleteDNS(n.getIntSwitchName(), dnsUUID, true) })
-
-	revert.Success()
-	return nil
-}
-
-// InstanceDevicePortStart sets up an instance device port to the internal logical switch.
-// Accepts a list of ACLs being removed from the NIC device (if called as part of a NIC update).
+// InstanceDevicePortAdd creates the logical switch port for an instance NIC, configures its IPs, DNS records,
+// routes, and DNAT/SNAT rules. It is idempotent and can be called multiple times safely.
+// In addition it also configures the security ACL port group memberships and default ACL rules.
+// It accepts a list of ACLs being removed from the NIC device (if called as part of a NIC update).
 // Returns the logical switch port name.
-func (n *ovn) InstanceDevicePortStart(opts *OVNInstanceNICSetupOpts, securityACLsRemove []string) (openvswitch.OVNSwitchPort, error) {
+func (n *ovn) InstanceDevicePortAdd(opts *OVNInstanceNICSetupOpts, securityACLsRemove []string) (openvswitch.OVNSwitchPort, error) {
 	if opts.InstanceUUID == "" {
 		return "", errors.New("Instance UUID is required")
 	}
@@ -3968,9 +3946,8 @@ func (n *ovn) InstanceDevicePortStart(opts *OVNInstanceNICSetupOpts, securityACL
 			nestedPortVLAN = uint16(nestedPortVLANInt64)
 		}
 
-		// Add port with mayExist set to true, so that if instance port exists, we don't fail and continue below
-		// to configure the port as needed. This is required because the port is created when the NIC is added, but
-		// we need to ensure it is present at start up as well in case it was deleted since the NIC was added.
+		// Add port with mayExist set to true, so that if instance port already exists, we don't fail and
+		// continue below to configure the port as needed.
 		err = client.LogicalSwitchPortAdd(n.getIntSwitchName(), instancePortName, &openvswitch.OVNSwitchPortOpts{
 			DHCPv4OptsID: dhcpV4ID,
 			DHCPv6OptsID: dhcpv6ID,
@@ -4218,6 +4195,10 @@ func (n *ovn) InstanceDevicePortStart(opts *OVNInstanceNICSetupOpts, securityACL
 			return "", err
 		}
 	}
+
+	revert.Success()
+	return instancePortName, nil
+}
 
 	// Merge network and NIC assigned security ACL lists.
 	netACLNames := shared.SplitNTrimSpace(n.config["security.acls"], ",", -1, true)
