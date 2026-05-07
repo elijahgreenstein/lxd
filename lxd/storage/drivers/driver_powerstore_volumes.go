@@ -1220,7 +1220,7 @@ func (d *powerstore) newMountableSnapshotVolume(snapVol Volume) (Volume, error) 
 		return Volume{}, fmt.Errorf(`Failed parsing "volatile.uuid" from snapshot %q: %w`, snapVol.name, err)
 	}
 
-	// Prefix snapshot clone with to allow distinguishing it from regular volumes.
+	// Prefix snapshot clone with powerStoreMountableSnapshotPrefix to allow distinguishing it from regular volumes.
 	cloneName := powerStoreMountableSnapshotPrefix + snapUUID
 
 	return NewVolume(d, d.name, snapVol.volType, snapVol.contentType, cloneName, snapVol.config, d.config), nil
