@@ -602,16 +602,21 @@ func (d *nicOVN) Start() (*deviceConfig.RunConfig, error) {
 	// Populate device config with volatile fields if needed.
 	networkVethFillFromVolatile(d.config, saveData)
 
-	// Add new OVN logical switch port for instance.
-	logicalPortName, err := d.network.InstanceDevicePortStart(&network.OVNInstanceNICSetupOpts{
+	nicSetupOpts := &network.OVNInstanceNICSetupOpts{
 		InstanceUUID: d.inst.LocalConfig()["volatile.uuid"],
 		DNSName:      d.inst.Name(),
 		DeviceName:   d.name,
 		DeviceConfig: d.config,
 		UplinkConfig: uplink.Config,
-	}, nil)
+	}
+
+	// Ensure the underlying OVN logical switch port exists.
+	// The operation is idempotent and safe to call even if the port already exists.
+	// It is required for the case when the switch port couldn't be created during Add().
+	// This might happen if there is an IP conflict with an existing port (e.g. caused by copying an instance).
+	logicalPortName, err := d.network.InstanceDevicePortAdd(nicSetupOpts, nil)
 	if err != nil {
-		return nil, fmt.Errorf("Failed setting up OVN port: %w", err)
+		return nil, fmt.Errorf("Failed adding OVN port: %w", err)
 	}
 
 	// Associated host side interface to OVN logical switch port (if not nested).
@@ -622,6 +627,13 @@ func (d *nicOVN) Start() (*deviceConfig.RunConfig, error) {
 		}
 
 		reverter.Add(cleanup)
+	}
+
+	// Ensure to call this after setting up the host side interface.
+	// This allows triggering actions that require the logical port to be up.
+	err = d.network.InstanceDevicePortStart(d.inst)
+	if err != nil {
+		return nil, fmt.Errorf("Failed starting up OVN port: %w", err)
 	}
 
 	runConf := deviceConfig.RunConfig{}
