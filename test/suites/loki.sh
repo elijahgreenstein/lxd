@@ -48,7 +48,7 @@ test_loki_security_types() {
   [ "$(lxc config get loki.types)" = "lifecycle,logging,security" ]
 
   # An unknown event type must be rejected by the validator.
-  ! lxc config set loki.types="lifecycle,logging,invalid_type" || false
+  [ "$(CLIENT_DEBUG="" SHELL_TRACING="" lxc config set loki.types="invalid_type" 2>&1)" = 'Error: Cannot set "loki.types" to "invalid_type": Item "invalid_type": Invalid value "invalid_type" (not one of [lifecycle logging ovn security])' ]
 
   sub_test "Verify lifecycle events still route to Loki when security is included in loki.types"
   ensure_import_testimage
