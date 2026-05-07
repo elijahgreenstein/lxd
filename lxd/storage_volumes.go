@@ -5,7 +5,6 @@ import (
 	"context"
 	"crypto/x509"
 	"encoding/json"
-	"encoding/pem"
 	"errors"
 	"fmt"
 	"io"
@@ -1356,12 +1355,7 @@ func doVolumeMigration(s *state.State, r *http.Request, requestProjectName strin
 	var err error
 	var cert *x509.Certificate
 	if req.Source.Certificate != "" {
-		certBlock, _ := pem.Decode([]byte(req.Source.Certificate))
-		if certBlock == nil {
-			return response.InternalError(errors.New("Invalid certificate"))
-		}
-
-		cert, err = x509.ParseCertificate(certBlock.Bytes)
+		cert, err = shared.ParseCert([]byte(req.Source.Certificate))
 		if err != nil {
 			return response.InternalError(err)
 		}
