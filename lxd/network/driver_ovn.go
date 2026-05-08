@@ -4314,6 +4314,12 @@ func (n *ovn) InstanceDevicePortAdd(opts *OVNInstanceNICSetupOpts, securityACLsR
 	return instancePortName, nil
 }
 
+// InstanceDevicePortStart is called after the host side of the device has been configured and the logical switch port is up.
+// The passed deviceInstance can be used to trigger any post-start configuration.
+func (n *ovn) InstanceDevicePortStart(deviceInstance instance.Instance) error {
+	return nil
+}
+
 // instanceDeviceACLDefaults returns the action and logging mode to use for the specified direction's default rule.
 // If the security.acls.default.{in,e}gress.action or security.acls.default.{in,e}gress.logged settings are not
 // specified in the NIC device config, then the settings on the network are used, and if not specified there then
