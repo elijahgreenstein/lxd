@@ -254,6 +254,9 @@ func networkZoneRecordsPost(d *Daemon, r *http.Request) response.Response {
 		Class:       operations.OperationClassTask,
 		RunHook:     run,
 		EntityURL:   entity.NetworkZoneURL(effectiveProjectName, details.zoneName),
+		Metadata: map[string]any{
+			api.MetadataEntityURL: entity.NetworkZoneURL(details.requestProject.Name, details.zoneName).String(),
+		},
 	}
 
 	op, err := operations.ScheduleUserOperationFromRequest(s, r, args)
