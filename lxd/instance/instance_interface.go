@@ -95,7 +95,7 @@ type Instance interface {
 	// Instance actions.
 	Freeze(ctx context.Context) error
 	Shutdown(ctx context.Context, timeout time.Duration) error
-	Start(ctx context.Context, progressReporter ioprogress.ProgressReporter, stateful bool) error
+	Start(ctx context.Context, stateful bool, progressReporter ioprogress.ProgressReporter) error
 	Stop(ctx context.Context, stateful bool) error
 	Restart(ctx context.Context, timeout time.Duration, progressReporter ioprogress.ProgressReporter) error
 	Rebuild(ctx context.Context, img *api.Image, op *operations.Operation) error

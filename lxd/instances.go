@@ -256,7 +256,7 @@ func instancesStart(ctx context.Context, s *state.State, instances []instance.In
 			attempt++
 
 			// Don't track progress here as there is no client to return the updates to.
-			err := inst.Start(ctx, nil, false)
+			err := inst.Start(ctx, false, nil)
 			if err != nil {
 				if api.StatusErrorCheck(err, http.StatusServiceUnavailable) {
 					break // Don't log or retry instances that are not ready to start yet.

@@ -1866,7 +1866,7 @@ func restoreClusterMember(d *Daemon, r *http.Request, mode string) response.Resp
 				// Start the instance.
 				reportEvacuationProgress(op, fmt.Sprintf("Starting %q in project %q", inst.Name(), inst.Project().Name))
 
-				err = inst.Start(ctx, op, false)
+				err = inst.Start(ctx, false, op)
 				if err != nil {
 					return fmt.Errorf("Failed starting instance %q: %w", inst.Name(), err)
 				}
@@ -1990,7 +1990,7 @@ func restoreClusterMember(d *Daemon, r *http.Request, mode string) response.Resp
 
 				reportEvacuationProgress(op, fmt.Sprintf("Starting %q in project %q", inst.Name(), inst.Project().Name))
 
-				err = inst.Start(ctx, op, false)
+				err = inst.Start(ctx, false, op)
 				if err != nil {
 					return fmt.Errorf("Failed starting instance %q: %w", inst.Name(), err)
 				}
