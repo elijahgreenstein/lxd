@@ -306,7 +306,7 @@ func doInstanceStatePut(ctx context.Context, inst instance.Instance, req api.Ins
 			return inst.Unfreeze(ctx)
 		}
 
-		return inst.Start(ctx, op, req.Stateful)
+		return inst.Start(ctx, req.Stateful, op)
 	case instancetype.Stop:
 		if req.Stateful {
 			return inst.Stop(ctx, req.Stateful)

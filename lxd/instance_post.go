@@ -747,7 +747,7 @@ func instancePostMigration(ctx context.Context, s *state.State, inst instance.In
 	}
 
 	if statefulStart {
-		err = targetInst.Start(ctx, op, true)
+		err = targetInst.Start(ctx, true, op)
 		if err != nil {
 			return err
 		}

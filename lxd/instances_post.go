@@ -385,7 +385,7 @@ func prepareInstanceMigrationSink(ctx context.Context, s *state.State, projectNa
 
 		// Start up the instance if requested by the client.
 		if req != nil && req.Start {
-			err := inst.Start(ctx, op, false)
+			err := inst.Start(ctx, false, op)
 			if err != nil {
 				return fmt.Errorf("Failed starting instance %q: %w", inst.Name(), err)
 			}
@@ -1925,5 +1925,5 @@ func instanceCreateFinish(ctx context.Context, s *state.State, req *api.Instance
 		return fmt.Errorf("Failed loading the instance: %w", err)
 	}
 
-	return inst.Start(ctx, op, false)
+	return inst.Start(ctx, false, op)
 }
