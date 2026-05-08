@@ -4212,8 +4212,12 @@ func (n *ovn) InstanceDevicePortAdd(opts *OVNInstanceNICSetupOpts, securityACLsR
 
 	// Get logical port UUID.
 	portUUID, err := client.LogicalSwitchPortUUID(instancePortName)
-	if err != nil || portUUID == "" {
+	if err != nil {
 		return "", fmt.Errorf("Failed getting logical port UUID for security ACL removal: %w", err)
+	}
+
+	if portUUID == "" {
+		return "", errors.New("Empty logical port UUID for security ACL removal")
 	}
 
 	// Add NIC port to network port group (this includes the port in the @internal subject for ACL rules).
