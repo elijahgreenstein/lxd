@@ -300,7 +300,8 @@ func networkACLsGet(d *Daemon, r *http.Request) response.Response {
 func networkACLsPost(d *Daemon, r *http.Request) response.Response {
 	s := d.State()
 
-	projectName, _, err := project.NetworkProject(s.DB.Cluster, request.ProjectParam(r))
+	requestProject := request.ProjectParam(r)
+	effectiveProjectName, _, err := project.NetworkProject(s.DB.Cluster, request.ProjectParam(r))
 	if err != nil {
 		return response.SmartError(err)
 	}
@@ -313,33 +314,36 @@ func networkACLsPost(d *Daemon, r *http.Request) response.Response {
 		return response.BadRequest(err)
 	}
 
-	_, err = acl.LoadByName(r.Context(), s, projectName, req.Name)
+	_, err = acl.LoadByName(r.Context(), s, effectiveProjectName, req.Name)
 	if err == nil {
 		return response.BadRequest(errors.New("The network ACL already exists"))
 	}
 
 	run := func(ctx context.Context, op *operations.Operation) error {
-		err = acl.Create(ctx, s, projectName, &req)
+		err = acl.Create(ctx, s, effectiveProjectName, &req)
 		if err != nil {
 			return err
 		}
 
-		netACL, err := acl.LoadByName(ctx, s, projectName, req.Name)
+		netACL, err := acl.LoadByName(ctx, s, effectiveProjectName, req.Name)
 		if err != nil {
 			return err
 		}
 
-		s.Events.SendLifecycle(projectName, lifecycle.NetworkACLCreated.Event(netACL, request.CreateRequestor(ctx), nil))
+		s.Events.SendLifecycle(effectiveProjectName, lifecycle.NetworkACLCreated.Event(netACL, request.CreateRequestor(ctx), nil))
 
 		return nil
 	}
 
 	args := operations.OperationArgs{
-		ProjectName: request.ProjectParam(r),
+		ProjectName: requestProject,
 		Type:        operationtype.NetworkACLCreate,
 		Class:       operations.OperationClassTask,
 		RunHook:     run,
-		EntityURL:   entity.ProjectURL(projectName),
+		EntityURL:   entity.ProjectURL(effectiveProjectName),
+		Metadata: map[string]any{
+			api.MetadataEntityURL: entity.NetworkACLURL(requestProject, req.Name).String(),
+		},
 	}
 
 	op, err := operations.ScheduleUserOperationFromRequest(s, r, args)
