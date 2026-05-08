@@ -229,7 +229,7 @@ func (d *nicOVN) validateConfig(instConf instance.ConfigReader) error {
 				return errors.New("VLAN must be specified with a nested NIC")
 			}
 
-			// Check the NIC that this NIC is neted under exists on this instance and shares same
+			// Check the NIC that this NIC is nested under exists on this instance and shares same
 			// parent network.
 			var nestedParentNIC string
 			for devName, devConfig := range instConf.ExpandedDevices() {
