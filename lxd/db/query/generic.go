@@ -123,10 +123,11 @@ func UpdateByPrimaryKey(ctx context.Context, tx *sql.Tx, u Updatable) error {
 	b.WriteString(u.UpdateStmt())
 	b.WriteString(" WHERE ")
 	cols := u.PKColumns()
+	lastColIdx := len(cols) - 1
 	for i, c := range cols {
 		b.WriteString(c)
 		b.WriteString(" = ?")
-		if i < len(cols)-1 {
+		if i < lastColIdx {
 			b.WriteString(" AND ")
 		}
 	}
@@ -315,10 +316,11 @@ func DeleteByPrimaryKey[T Referenceable](ctx context.Context, tx *sql.Tx, t T) e
 	b.WriteString(tableName)
 	b.WriteString(" WHERE ")
 	cols := t.PKColumns()
+	lastColIdx := len(cols) - 1
 	for i, c := range cols {
 		b.WriteString(c)
 		b.WriteString(" = ?")
-		if i < len(cols)-1 {
+		if i < lastColIdx {
 			b.WriteString(" AND ")
 		}
 	}
