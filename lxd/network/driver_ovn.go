@@ -919,7 +919,7 @@ func (n *ovn) Validate(config map[string]string) error {
 		}
 	}
 
-	// Check that ipv6.l3only mode is used with ipvp.dhcp.stateful.
+	// Check that ipv6.l3only mode is used with ipv6.dhcp.stateful.
 	// As otherwise the router advertisements will configure an address using the subnet's mask.
 	if shared.IsTrue(config["ipv6.l3only"]) && shared.IsTrueOrEmpty(config["ipv6.dhcp"]) && shared.IsFalseOrEmpty(config["ipv6.dhcp.stateful"]) {
 		return errors.New("The ipv6.dhcp.stateful setting must be enabled when using ipv6.l3only mode with ipv6.dhcp enabled")
