@@ -1442,7 +1442,6 @@ func networkPost(d *Daemon, r *http.Request) response.Response {
 	}
 
 	networkName := details.networkName
-	entityURL := entity.NetworkURL(effectiveProjectName, networkName)
 
 	run := func(ctx context.Context, op *operations.Operation) error {
 		err = n.Rename(req.Name)
@@ -1462,7 +1461,11 @@ func networkPost(d *Daemon, r *http.Request) response.Response {
 		Type:        operationtype.NetworkRename,
 		Class:       operations.OperationClassTask,
 		RunHook:     run,
-		EntityURL:   entityURL,
+		EntityURL:   entity.NetworkURL(effectiveProjectName, networkName),
+		Metadata: map[string]any{
+			api.MetadataOriginalEntityURL: entity.NetworkURL(details.requestProject.Name, networkName).String(),
+			api.MetadataEntityURL:         entity.NetworkURL(details.requestProject.Name, req.Name).String(),
+		},
 	}
 
 	op, err := operations.ScheduleUserOperationFromRequest(s, r, args)
