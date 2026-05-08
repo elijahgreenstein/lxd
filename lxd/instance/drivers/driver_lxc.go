@@ -2247,7 +2247,7 @@ func (d *lxc) detachInterfaceRename(netns string, ifName string, hostName string
 }
 
 // Start starts the instance.
-func (d *lxc) Start(ctx context.Context, progressReporter ioprogress.ProgressReporter, stateful bool) error {
+func (d *lxc) Start(ctx context.Context, stateful bool, progressReporter ioprogress.ProgressReporter) error {
 	unlock, err := d.updateBackupFileLock(context.Background())
 	if err != nil {
 		return err
@@ -2972,7 +2972,7 @@ func (d *lxc) onStop(ctx context.Context, args map[string]string) error {
 			// Start the container again
 			// Progress tracking here is not useful. We are in the on stop hook, which is called via lxc hook, so progress
 			// reporting would not be returned to the original client.
-			err = d.Start(ctx, nil, false)
+			err = d.Start(ctx, false, nil)
 			if err != nil {
 				op.Done(fmt.Errorf("Failed restarting instance: %w", err))
 				return
@@ -3401,7 +3401,7 @@ func (d *lxc) Restore(ctx context.Context, sourceContainer instance.Instance, st
 	// Restart the container.
 	if wasRunning {
 		d.logger.Debug("Starting instance after snapshot restore")
-		err = d.Start(ctx, progressReporter, false)
+		err = d.Start(ctx, false, progressReporter)
 		if err != nil {
 			op.Done(err)
 			return err

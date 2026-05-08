@@ -670,7 +670,7 @@ func (d *qemu) onStop(ctx context.Context, target string) error {
 	if target == "reboot" {
 		// Progress tracking here is not useful. We are in the on stop hook, which is called via lxc hook, so progress
 		// reporting would not be returned to the original client.
-		err = d.Start(ctx, nil, false)
+		err = d.Start(ctx, false, nil)
 		if err != nil {
 			op.Done(err)
 			return err
@@ -1096,7 +1096,7 @@ func (d *qemu) validateStartup(stateful bool, statusCode api.StatusCode) error {
 }
 
 // Start starts the instance.
-func (d *qemu) Start(ctx context.Context, progressReporter ioprogress.ProgressReporter, stateful bool) error {
+func (d *qemu) Start(ctx context.Context, stateful bool, progressReporter ioprogress.ProgressReporter) error {
 	unlock, err := d.updateBackupFileLock(context.Background())
 	if err != nil {
 		return err
@@ -5542,7 +5542,7 @@ func (d *qemu) Restore(ctx context.Context, source instance.Instance, stateful b
 	// Restart the instance.
 	if wasRunning || stateful {
 		d.logger.Debug("Starting instance after snapshot restore")
-		err := d.Start(ctx, progressReporter, stateful)
+		err := d.Start(ctx, stateful, progressReporter)
 		if err != nil {
 			op.Done(err)
 			return err

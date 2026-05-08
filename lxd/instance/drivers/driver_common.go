@@ -617,7 +617,7 @@ func (d *common) restartCommon(ctx context.Context, inst instance.Instance, time
 		return fmt.Errorf("Create restart (for start) operation: %w", err)
 	}
 
-	err = inst.Start(ctx, progressReporter, false)
+	err = inst.Start(ctx, false, progressReporter)
 	if err != nil {
 		op.Done(err)
 		return err
