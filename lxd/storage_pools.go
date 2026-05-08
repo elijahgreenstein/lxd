@@ -482,7 +482,7 @@ func storagePoolPartiallyCreated(pool *api.StoragePool) bool {
 	}
 
 	// If the pool has global config keys, then it has previously been created by having its global config
-	// inserted, and this means it is partialled created.
+	// inserted, and this means it is partially created.
 	for key := range pool.Config {
 		if !slices.Contains(db.NodeSpecificStorageConfig, key) {
 			return true

@@ -268,7 +268,7 @@ func SelectFunc[T Selectable, PT interface {
 
 	err = rows.Err()
 	if err != nil {
-		return fmt.Errorf("Failed loading %s: %w", strings.ToLower(plural(t)), rows.Err())
+		return fmt.Errorf("Failed loading %s: %w", strings.ToLower(plural(t)), err)
 	}
 
 	return nil

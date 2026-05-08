@@ -111,7 +111,7 @@ func addNetworkDetailsToRequestContext(s *state.State, r *http.Request) error {
 	return nil
 }
 
-// profileAccessHandler calls addProfileDetailsToRequestContext, then uses the details to perform an access check with
+// networkAccessHandler calls addNetworkDetailsToRequestContext, then uses the details to perform an access check with
 // the given auth.Entitlement.
 func networkAccessHandler(entitlement auth.Entitlement) func(d *Daemon, r *http.Request) response.Response {
 	return func(d *Daemon, r *http.Request) response.Response {
@@ -745,7 +745,7 @@ func networkPartiallyCreated(netInfo *api.Network) bool {
 	}
 
 	// If the network has global config keys, then it has previously been created by having its global config
-	// inserted, and this means it is partialled created.
+	// inserted, and this means it is partially created.
 	for key := range netInfo.Config {
 		if !slices.Contains(db.NodeSpecificNetworkConfig, key) {
 			return true

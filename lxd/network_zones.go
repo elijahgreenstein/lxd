@@ -77,7 +77,7 @@ func addNetworkZoneDetailsToRequestContext(s *state.State, r *http.Request) erro
 	return nil
 }
 
-// profileAccessHandler calls addNetworkZoneDetailsToRequestContext, then uses the details to perform an access check with
+// networkZoneAccessHandler calls addNetworkZoneDetailsToRequestContext, then uses the details to perform an access check with
 // the given auth.Entitlement.
 func networkZoneAccessHandler(entitlement auth.Entitlement) func(d *Daemon, r *http.Request) response.Response {
 	return func(d *Daemon, r *http.Request) response.Response {

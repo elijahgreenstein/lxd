@@ -919,7 +919,7 @@ func (n *ovn) Validate(config map[string]string) error {
 		}
 	}
 
-	// Check that ipv6.l3only mode is used with ipvp.dhcp.stateful.
+	// Check that ipv6.l3only mode is used with ipv6.dhcp.stateful.
 	// As otherwise the router advertisements will configure an address using the subnet's mask.
 	if shared.IsTrue(config["ipv6.l3only"]) && shared.IsTrueOrEmpty(config["ipv6.dhcp"]) && shared.IsFalseOrEmpty(config["ipv6.dhcp.stateful"]) {
 		return errors.New("The ipv6.dhcp.stateful setting must be enabled when using ipv6.l3only mode with ipv6.dhcp enabled")
@@ -943,11 +943,11 @@ func (n *ovn) getBridgeMTU() uint32 {
 	return 0
 }
 
-// getUnderlayInfo returns the MTU for the underlay network interface and the enscapsulation IP for OVN tunnels.
+// getUnderlayInfo returns the MTU for the underlay network interface and the encapsulation IP for OVN tunnels.
 func (n *ovn) getUnderlayInfo() (uint32, net.IP, error) {
 	// findMTUFromIP searches all interfaces on the host looking for one that has specified IP.
 	findMTUFromIP := func(findIP net.IP) (uint32, error) {
-		// Look for interface that has the OVN enscapsulation IP assigned.
+		// Look for interface that has the OVN encapsulation IP assigned.
 		ifaces, err := net.Interfaces()
 		if err != nil {
 			return 0, fmt.Errorf("Failed getting local network interfaces: %w", err)
@@ -976,13 +976,13 @@ func (n *ovn) getUnderlayInfo() (uint32, net.IP, error) {
 			}
 		}
 
-		return 0, fmt.Errorf("No matching interface found for OVN enscapsulation IP %q", findIP.String())
+		return 0, fmt.Errorf("No matching interface found for OVN encapsulation IP %q", findIP.String())
 	}
 
 	ovs := openvswitch.NewOVS()
 	encapIP, err := ovs.OVNEncapIP()
 	if err != nil {
-		return 0, nil, fmt.Errorf("Failed getting OVN enscapsulation IP from OVS: %w", err)
+		return 0, nil, fmt.Errorf("Failed getting OVN encapsulation IP from OVS: %w", err)
 	}
 
 	underlayMTU, err := findMTUFromIP(encapIP)

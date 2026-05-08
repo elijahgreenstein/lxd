@@ -2062,7 +2062,7 @@ func (d *qemu) setupNvram() error {
 
 	// Cleanup existing variables file.
 	instancePath := d.Path()
-	for _, varsName := range edk2.GetAchitectureFirmwareVarsCandidates(d.architecture) {
+	for _, varsName := range edk2.GetArchitectureFirmwareVarsCandidates(d.architecture) {
 		err := os.Remove(filepath.Join(instancePath, varsName))
 		if err != nil && !os.IsNotExist(err) {
 			return fmt.Errorf("Failed removing firmware vars file %q: %w", varsName, err)

@@ -159,10 +159,10 @@ var architectureInstallations = map[int][]Installation{
 	}},
 }
 
-// GetAchitectureFirmwareVarsCandidates returns a unique list of candidate vars names for hostArch for all usages.
+// GetArchitectureFirmwareVarsCandidates returns a unique list of candidate vars names for hostArch for all usages.
 // It does not check whether the associated firmware files are present on the host now.
 // This can be used to check for the existence of previously used firmware vars files in an existing VM instance.
-func GetAchitectureFirmwareVarsCandidates(hostArch int) (varsNames []string) {
+func GetArchitectureFirmwareVarsCandidates(hostArch int) (varsNames []string) {
 	for _, installation := range architectureInstallations[hostArch] {
 		for _, usage := range installation.Usage {
 			for _, fwPair := range usage {

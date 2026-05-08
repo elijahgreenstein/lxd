@@ -191,7 +191,7 @@ func (o *OVS) ChassisID() (string, error) {
 	return chassisID, nil
 }
 
-// OVNEncapIP returns the enscapsulation IP used for OVN underlay tunnels.
+// OVNEncapIP returns the encapsulation IP used for OVN underlay tunnels.
 func (o *OVS) OVNEncapIP() (net.IP, error) {
 	// ovs-vsctl's get command doesn't support its --format flag, so we always get the output quoted.
 	// However ovs-vsctl's find and list commands don't support retrieving a single column's map field.
