@@ -38,8 +38,8 @@ type ovnNet interface {
 	network.Network
 
 	InstanceDevicePortValidateExternalRoutes(deviceInstance instance.Instance, deviceName string, externalRoutes []*net.IPNet) error
-	InstanceDevicePortAdd(instanceUUID string, deviceName string, deviceConfig deviceConfig.Device) error
-	InstanceDevicePortStart(opts *network.OVNInstanceNICSetupOpts, securityACLsRemove []string) (openvswitch.OVNSwitchPort, error)
+	InstanceDevicePortAdd(opts *network.OVNInstanceNICSetupOpts, securityACLsRemove []string) (openvswitch.OVNSwitchPort, error)
+	InstanceDevicePortStart(deviceInstance instance.Instance) error
 	InstanceDevicePortRemove(instanceUUID string, deviceName string, deviceConfig deviceConfig.Device) error
 	InstanceDevicePortIPs(instanceUUID string, deviceName string) ([]net.IP, error)
 }
@@ -467,21 +467,18 @@ func (d *nicOVN) Add() error {
 		return fmt.Errorf("Failed loading uplink network %q: %w", uplinkNetworkName, err)
 	}
 
-	err = d.network.InstanceDevicePortAdd(d.inst.LocalConfig()["volatile.uuid"], d.name, d.config)
-	if err != nil {
-		return err
-	}
-
-	// Add new OVN logical switch port for instance.
-	_, err = d.network.InstanceDevicePortStart(&network.OVNInstanceNICSetupOpts{
+	nicSetupOpts := &network.OVNInstanceNICSetupOpts{
 		InstanceUUID: d.inst.LocalConfig()["volatile.uuid"],
 		DNSName:      d.inst.Name(),
 		DeviceName:   d.name,
 		DeviceConfig: d.config,
 		UplinkConfig: uplink.Config,
-	}, nil)
+	}
+
+	// Add new OVN logical switch port for instance.
+	_, err = d.network.InstanceDevicePortAdd(nicSetupOpts, nil)
 	if err != nil {
-		return fmt.Errorf("Failed setting up OVN port: %w", err)
+		return fmt.Errorf("Failed adding OVN port: %w", err)
 	}
 
 	return nil
@@ -605,16 +602,21 @@ func (d *nicOVN) Start() (*deviceConfig.RunConfig, error) {
 	// Populate device config with volatile fields if needed.
 	networkVethFillFromVolatile(d.config, saveData)
 
-	// Add new OVN logical switch port for instance.
-	logicalPortName, err := d.network.InstanceDevicePortStart(&network.OVNInstanceNICSetupOpts{
+	nicSetupOpts := &network.OVNInstanceNICSetupOpts{
 		InstanceUUID: d.inst.LocalConfig()["volatile.uuid"],
 		DNSName:      d.inst.Name(),
 		DeviceName:   d.name,
 		DeviceConfig: d.config,
 		UplinkConfig: uplink.Config,
-	}, nil)
+	}
+
+	// Ensure the underlying OVN logical switch port exists.
+	// The operation is idempotent and safe to call even if the port already exists.
+	// It is required for the case when the switch port couldn't be created during Add().
+	// This might happen if there is an IP conflict with an existing port (e.g. caused by copying an instance).
+	logicalPortName, err := d.network.InstanceDevicePortAdd(nicSetupOpts, nil)
 	if err != nil {
-		return nil, fmt.Errorf("Failed setting up OVN port: %w", err)
+		return nil, fmt.Errorf("Failed adding OVN port: %w", err)
 	}
 
 	// Associated host side interface to OVN logical switch port (if not nested).
@@ -625,6 +627,13 @@ func (d *nicOVN) Start() (*deviceConfig.RunConfig, error) {
 		}
 
 		reverter.Add(cleanup)
+	}
+
+	// Ensure to call this after setting up the host side interface.
+	// This allows triggering actions that require the logical port to be up.
+	err = d.network.InstanceDevicePortStart(d.inst)
+	if err != nil {
+		return nil, fmt.Errorf("Failed starting up OVN port: %w", err)
 	}
 
 	runConf := deviceConfig.RunConfig{}
@@ -881,19 +890,6 @@ func (d *nicOVN) Update(oldDevices deviceConfig.Devices, isRunning bool) error {
 			}
 		}
 
-		// Remove old DHCP reservations and DNS records before re-adding with new IPs.
-		if ipv4Changed || ipv6Changed {
-			err := d.network.InstanceDevicePortRemove(d.inst.LocalConfig()["volatile.uuid"], d.name, oldConfig)
-			if err != nil {
-				return fmt.Errorf("Failed removing old instance device port config: %w", err)
-			}
-
-			err = d.network.InstanceDevicePortAdd(d.inst.LocalConfig()["volatile.uuid"], d.name, d.config)
-			if err != nil {
-				return fmt.Errorf("Failed adding updated instance device port config: %w", err)
-			}
-		}
-
 		// Load uplink network config.
 		uplinkNetworkName := d.network.Config()["network"]
 
@@ -910,16 +906,32 @@ func (d *nicOVN) Update(oldDevices deviceConfig.Devices, isRunning bool) error {
 			return fmt.Errorf("Failed loading uplink network %q: %w", uplinkNetworkName, err)
 		}
 
-		// Update OVN logical switch port for instance.
-		_, err = d.network.InstanceDevicePortStart(&network.OVNInstanceNICSetupOpts{
+		nicSetupOpts := &network.OVNInstanceNICSetupOpts{
 			InstanceUUID: d.inst.LocalConfig()["volatile.uuid"],
 			DNSName:      d.inst.Name(),
 			DeviceName:   d.name,
 			DeviceConfig: d.config,
 			UplinkConfig: uplink.Config,
-		}, removedACLs)
+		}
+
+		// Remove the port only when IP addresses have changed.
+		if ipv4Changed || ipv6Changed {
+			err = d.network.InstanceDevicePortRemove(d.inst.LocalConfig()["volatile.uuid"], d.name, oldConfig)
+			if err != nil {
+				return fmt.Errorf("Failed removing old instance device port config: %w", err)
+			}
+		}
+
+		// Always try to add the port to apply any ACL changes.
+		_, err = d.network.InstanceDevicePortAdd(nicSetupOpts, removedACLs)
 		if err != nil {
-			return fmt.Errorf("Failed updating OVN port: %w", err)
+			return fmt.Errorf("Failed adding updated instance device port config: %w", err)
+		}
+
+		// Signal a restart of the device.
+		err = d.network.InstanceDevicePortStart(d.inst)
+		if err != nil {
+			return fmt.Errorf("Failed starting up OVN port: %w", err)
 		}
 
 		if isRunning {
