@@ -296,6 +296,9 @@ func networkPeersPost(d *Daemon, r *http.Request) response.Response {
 		Class:       operations.OperationClassTask,
 		RunHook:     run,
 		EntityURL:   entity.NetworkURL(effectiveProjectName, details.networkName),
+		Metadata: map[string]any{
+			api.MetadataEntityURL: entity.NetworkURL(details.requestProject.Name, details.networkName).String(),
+		},
 	}
 
 	op, err := operations.ScheduleUserOperationFromRequest(s, r, args)
