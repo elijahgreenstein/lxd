@@ -968,12 +968,7 @@ func doCertificateUpdate(ctx context.Context, d *Daemon, cert dbCluster.Certific
 	certChanged := false
 	if req.Certificate != "" && cert.Certificate != req.Certificate {
 		// Add supplied certificate.
-		block, _ := pem.Decode([]byte(req.Certificate))
-		if block == nil {
-			return response.BadRequest(errors.New("Invalid certificate material"))
-		}
-
-		x509Cert, err := x509.ParseCertificate(block.Bytes)
+		x509Cert, err := shared.ParseCert([]byte(req.Certificate))
 		if err != nil {
 			return response.BadRequest(fmt.Errorf("Invalid certificate material: %w", err))
 		}
@@ -1066,12 +1061,7 @@ func doCertificateUpdateUnprivileged(ctx context.Context, s *state.State, cert d
 	}
 
 	// Add supplied certificate.
-	block, _ := pem.Decode([]byte(req.Certificate))
-	if block == nil {
-		return response.BadRequest(errors.New("Invalid certificate material"))
-	}
-
-	x509Cert, err := x509.ParseCertificate(block.Bytes)
+	x509Cert, err := shared.ParseCert([]byte(req.Certificate))
 	if err != nil {
 		return response.BadRequest(fmt.Errorf("Invalid certificate material: %w", err))
 	}
@@ -1184,12 +1174,10 @@ func certificateDelete(d *Daemon, r *http.Request) response.Response {
 	// Non-admins are able to delete only their own certificate.
 	if !userCanEditCertificate {
 		if r.TLS == nil {
-			response.Forbidden(errors.New("Cannot delete certificate"))
+			return response.Forbidden(errors.New("Cannot delete certificate"))
 		}
 
-		certBlock, _ := pem.Decode([]byte(certInfo.Certificate))
-
-		cert, err := x509.ParseCertificate(certBlock.Bytes)
+		cert, err := shared.ParseCert([]byte(certInfo.Certificate))
 		if err != nil {
 			// This should not happen
 			return response.InternalError(err)
@@ -1244,11 +1232,13 @@ func certificateDelete(d *Daemon, r *http.Request) response.Response {
 }
 
 func certificateValidate(networkCert *shared.CertInfo, cert *x509.Certificate) error {
-	if time.Now().Before(cert.NotBefore) {
+	// Verify cert is valid.
+	now := time.Now()
+	if now.Before(cert.NotBefore) {
 		return api.NewStatusError(http.StatusBadRequest, "The provided certificate is not valid yet")
 	}
 
-	if time.Now().After(cert.NotAfter) {
+	if now.After(cert.NotAfter) {
 		return api.NewStatusError(http.StatusBadRequest, "The provided certificate is expired")
 	}
 

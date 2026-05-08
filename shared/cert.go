@@ -493,12 +493,7 @@ func CertFingerprint(cert *x509.Certificate) string {
 
 // CertFingerprintStr returns the certificate fingerprint of a X.509 certificate provided as string.
 func CertFingerprintStr(c string) (string, error) {
-	pemCertificate, _ := pem.Decode([]byte(c))
-	if pemCertificate == nil {
-		return "", errors.New("invalid certificate")
-	}
-
-	cert, err := x509.ParseCertificate(pemCertificate.Bytes)
+	cert, err := ParseCert([]byte(c))
 	if err != nil {
 		return "", err
 	}

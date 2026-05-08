@@ -2,8 +2,6 @@ package validate
 
 import (
 	"bytes"
-	"crypto/x509"
-	"encoding/pem"
 	"errors"
 	"fmt"
 	"net"
@@ -20,6 +18,7 @@ import (
 	"github.com/robfig/cron/v3"
 	"go.yaml.in/yaml/v2"
 
+	"github.com/canonical/lxd/shared"
 	"github.com/canonical/lxd/shared/osarch"
 	"github.com/canonical/lxd/shared/units"
 )
@@ -667,12 +666,7 @@ func IsListenAddress(allowDNS bool, allowWildcard bool, requirePort bool) func(v
 
 // IsX509Certificate checks if the value is a valid x509 PEM Certificate.
 func IsX509Certificate(value string) error {
-	certBlock, _ := pem.Decode([]byte(value))
-	if certBlock == nil {
-		return errors.New("Invalid certificate")
-	}
-
-	_, err := x509.ParseCertificate(certBlock.Bytes)
+	_, err := shared.ParseCert([]byte(value))
 
 	return err
 }

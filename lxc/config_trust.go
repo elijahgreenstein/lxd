@@ -1,9 +1,7 @@
 package main
 
 import (
-	"crypto/x509"
 	"encoding/base64"
-	"encoding/pem"
 	"errors"
 	"fmt"
 	"io"
@@ -412,12 +410,7 @@ func (c *cmdConfigTrustList) run(cmd *cobra.Command, args []string) error {
 	for _, cert := range trust {
 		fp := cert.Fingerprint[0:12]
 
-		certBlock, _ := pem.Decode([]byte(cert.Certificate))
-		if certBlock == nil {
-			return errors.New("Invalid certificate")
-		}
-
-		tlsCert, err := x509.ParseCertificate(certBlock.Bytes)
+		tlsCert, err := shared.ParseCert([]byte(cert.Certificate))
 		if err != nil {
 			return err
 		}

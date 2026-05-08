@@ -2454,13 +2454,7 @@ func updateIdentityCache(d *Daemon) {
 			}
 
 			// Always take first (most recent) certificate for now.
-			certBlock, _ := pem.Decode([]byte(certs[0]))
-			if certBlock == nil {
-				logger.Warn("Failed PEM decoding certificate for TLS identity", logger.Ctx{"identity_identifier": id.Identifier})
-				continue
-			}
-
-			cert, err := x509.ParseCertificate(certBlock.Bytes)
+			cert, err := shared.ParseCert([]byte(certs[0]))
 			if err != nil {
 				logger.Warn("Failed x509 parsing certificate for TLS identity", logger.Ctx{"identity_identifier": id.Identifier, "err": err})
 				continue
@@ -2536,13 +2530,7 @@ func updateIdentityCacheFromLocal(d *Daemon) error {
 	// identityCacheEntries needs to be pre-allocated.
 	serverCerts := make(map[string]*x509.Certificate)
 	for _, dbCert := range localServerCerts {
-		certBlock, _ := pem.Decode([]byte(dbCert.Certificate))
-		if certBlock == nil {
-			logger.Warn("Failed decoding certificate", logger.Ctx{"name": dbCert.Name, "err": err})
-			continue
-		}
-
-		cert, err := x509.ParseCertificate(certBlock.Bytes)
+		cert, err := shared.ParseCert([]byte(dbCert.Certificate))
 		if err != nil {
 			logger.Warn("Failed parsing certificate", logger.Ctx{"name": dbCert.Name, "err": err})
 			continue

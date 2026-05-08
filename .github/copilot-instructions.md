@@ -307,6 +307,12 @@ OK (counting genuinely matters):
   }
   ```
 - **No contractions** in error messages: Use `does not` not `doesn't`, `cannot` not `can't`.
+- **Use `shared` package helpers**: Before manually implementing certificate parsing, string manipulation, or other utilities, check the `shared` package for existing helpers. Key examples:
+  - **`shared.ParseCert([]byte)`** — parses a PEM-encoded certificate; use instead of manually calling `pem.Decode` + `x509.ParseCertificate`.
+  - **`shared.CertFingerprint(cert)`** — returns the SHA-256 fingerprint of an `*x509.Certificate`.
+  - **`shared.GetRemoteCertificate(ctx, url, userAgent)`** — fetches the TLS certificate presented by a remote server.
+  - **`shared.SplitNTrimSpace(s, sep, n, trim)`** — splits and trims a string; use instead of `strings.Split` + manual trimming.
+  - When in doubt, look into `shared/` for the operation you need before writing it from scratch.
 - These error message rules apply to Go string literals only, not to comments.
 - When changing error messages, update any integration test assertions in `test/suites/*.sh` that match the old text.
 - Always use proper English grammar in error messages, even if it results in longer messages. Avoid abbreviations or slang that may be unclear to non-native speakers.

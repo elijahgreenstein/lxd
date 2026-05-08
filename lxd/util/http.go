@@ -8,8 +8,6 @@ import (
 	"crypto/x509"
 	"encoding/hex"
 	"encoding/json"
-	"encoding/pem"
-	"errors"
 	"fmt"
 	"io"
 	"net"
@@ -105,12 +103,7 @@ func HTTPClient(certificate string, proxy proxyFunc) (*http.Client, error) {
 	var cert *x509.Certificate
 
 	if certificate != "" {
-		certBlock, _ := pem.Decode([]byte(certificate))
-		if certBlock == nil {
-			return nil, errors.New("Invalid certificate")
-		}
-
-		cert, err = x509.ParseCertificate(certBlock.Bytes)
+		cert, err = shared.ParseCert([]byte(certificate))
 		if err != nil {
 			return nil, err
 		}
