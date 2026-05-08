@@ -343,7 +343,7 @@ func networkZonesPost(d *Daemon, r *http.Request) response.Response {
 	s := d.State()
 
 	requestProjectName := request.ProjectParam(r)
-	projectName, _, err := project.NetworkZoneProject(s.DB.Cluster, requestProjectName)
+	effectiveProjectName, _, err := project.NetworkZoneProject(s.DB.Cluster, requestProjectName)
 	if err != nil {
 		return response.SmartError(err)
 	}
@@ -363,19 +363,19 @@ func networkZonesPost(d *Daemon, r *http.Request) response.Response {
 	}
 
 	run := func(ctx context.Context, op *operations.Operation) error {
-		err = zone.Create(ctx, s, projectName, &req)
+		err = zone.Create(ctx, s, effectiveProjectName, &req)
 		if err != nil {
 			return err
 		}
 
-		netzone, err := zone.LoadByNameAndProject(ctx, s, projectName, req.Name)
+		netzone, err := zone.LoadByNameAndProject(ctx, s, effectiveProjectName, req.Name)
 		if err != nil {
 			return err
 		}
 
 		requestor := request.CreateRequestor(ctx)
 		lc := lifecycle.NetworkZoneCreated.Event(netzone, requestor, nil)
-		s.Events.SendLifecycle(projectName, lc)
+		s.Events.SendLifecycle(effectiveProjectName, lc)
 
 		return nil
 	}
@@ -385,7 +385,10 @@ func networkZonesPost(d *Daemon, r *http.Request) response.Response {
 		Type:        operationtype.NetworkZoneCreate,
 		Class:       operations.OperationClassTask,
 		RunHook:     run,
-		EntityURL:   entity.ProjectURL(projectName),
+		EntityURL:   entity.ProjectURL(effectiveProjectName),
+		Metadata: map[string]any{
+			api.MetadataEntityURL: entity.NetworkZoneURL(requestProjectName, req.Name).String(),
+		},
 	}
 
 	op, err := operations.ScheduleUserOperationFromRequest(s, r, args)
