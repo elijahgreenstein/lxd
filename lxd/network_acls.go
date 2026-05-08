@@ -722,7 +722,8 @@ func networkACLPost(d *Daemon, r *http.Request) response.Response {
 		return response.SmartError(err)
 	}
 
-	projectName, _, err := project.NetworkProject(s.DB.Cluster, request.ProjectParam(r))
+	requestProject := request.ProjectParam(r)
+	effectiveProjectName, _, err := project.NetworkProject(s.DB.Cluster, request.ProjectParam(r))
 	if err != nil {
 		return response.SmartError(err)
 	}
@@ -736,12 +737,10 @@ func networkACLPost(d *Daemon, r *http.Request) response.Response {
 	}
 
 	// Get the existing Network ACL.
-	netACL, err := acl.LoadByName(r.Context(), s, projectName, aclName)
+	netACL, err := acl.LoadByName(r.Context(), s, effectiveProjectName, aclName)
 	if err != nil {
 		return response.SmartError(err)
 	}
-
-	entityURL := entity.NetworkACLURL(projectName, aclName)
 
 	run := func(ctx context.Context, op *operations.Operation) error {
 		err = netACL.Rename(ctx, req.Name)
@@ -751,17 +750,21 @@ func networkACLPost(d *Daemon, r *http.Request) response.Response {
 
 		requestor := request.CreateRequestor(ctx)
 		lc := lifecycle.NetworkACLRenamed.Event(netACL, requestor, logger.Ctx{"old_name": aclName})
-		s.Events.SendLifecycle(projectName, lc)
+		s.Events.SendLifecycle(effectiveProjectName, lc)
 
 		return nil
 	}
 
 	args := operations.OperationArgs{
-		ProjectName: request.ProjectParam(r),
+		ProjectName: requestProject,
 		Type:        operationtype.NetworkACLRename,
 		Class:       operations.OperationClassTask,
 		RunHook:     run,
-		EntityURL:   entityURL,
+		EntityURL:   entity.NetworkACLURL(effectiveProjectName, aclName),
+		Metadata: map[string]any{
+			api.MetadataOriginalEntityURL: entity.NetworkACLURL(requestProject, aclName).String(),
+			api.MetadataEntityURL:         entity.NetworkACLURL(requestProject, req.Name).String(),
+		},
 	}
 
 	op, err := operations.ScheduleUserOperationFromRequest(s, r, args)
