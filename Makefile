@@ -442,7 +442,7 @@ dist:
 	rm -Rf $(TMP)
 
 .PHONY: static-analysis
-static-analysis: check-api check-auth check-metadata
+static-analysis: check-api check-auth check-metadata check-schema
 	@# XXX: if errortype becomes available as a golangci-lint linter, remove this and update golangci-lint config
 	go install fillmore-labs.com/errortype@latest
 
