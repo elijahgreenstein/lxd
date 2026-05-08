@@ -326,7 +326,7 @@ update-schema:
 
 .PHONY: check-schema
 check-schema: update-schema
-	@FILES="$$(git diff --name-only | grep '\.mapper\.go$$' || true)"; \
+	@FILES="$$(git diff --name-only | grep -E '(/generated|\.mapper)\.go$$' || true)"; \
 	if [ -n "$$FILES" ]; then \
 		./scripts/check-and-commit.sh "$$FILES" "lxd: Update generated code"; \
 	fi
@@ -442,7 +442,7 @@ dist:
 	rm -Rf $(TMP)
 
 .PHONY: static-analysis
-static-analysis: check-api check-auth check-metadata
+static-analysis: check-api check-auth check-metadata check-schema
 	@# XXX: if errortype becomes available as a golangci-lint linter, remove this and update golangci-lint config
 	go install fillmore-labs.com/errortype@latest
 

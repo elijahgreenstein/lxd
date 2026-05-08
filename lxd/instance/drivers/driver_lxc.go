@@ -234,7 +234,7 @@ func lxcCreate(ctx context.Context, s *state.State, args db.InstanceArgs, p api.
 		"volatile.idmap.base": strconv.FormatInt(base, 10),
 	}
 
-	// Invalid idmap cache.
+	// Invalidate idmap cache.
 	d.idmapset = nil
 
 	// Set last_state if not currently set.

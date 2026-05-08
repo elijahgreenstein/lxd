@@ -506,9 +506,6 @@ func createFromConversion(r *http.Request, s *state.State, projectName string, p
 	}
 
 	revert.Add(cleanup)
-	if err != nil {
-		return response.SmartError(fmt.Errorf("Failed getting exclusive access to instance: %w", err))
-	}
 
 	revert.Add(func() { instOp.Done(err) })
 
@@ -1789,7 +1786,7 @@ func instanceFindStoragePool(s *state.State, projectName string, req *api.Instan
 
 	// If there is just a single pool in the database, use that
 	if storagePool == "" {
-		logger.Debug("No valid storage pool in the container's local root disk device and profiles found")
+		logger.Debug("No valid storage pool in the instance's local root disk device and profiles found")
 
 		var pools []string
 

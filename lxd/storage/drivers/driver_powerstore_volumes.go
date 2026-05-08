@@ -535,7 +535,7 @@ func (d *powerstore) CreateVolumeFromCopy(vol VolumeCopy, srcVol VolumeCopy, all
 		return err
 	}
 
-	// Add reverted to delete destination volume, if not already added.
+	// Add reverter to delete destination volume, if not already added.
 	if deleteVolCopy {
 		revert.Add(func() { _ = d.DeleteVolume(vol.Volume, progressReporter) })
 	}
@@ -1220,7 +1220,7 @@ func (d *powerstore) newMountableSnapshotVolume(snapVol Volume) (Volume, error) 
 		return Volume{}, fmt.Errorf(`Failed parsing "volatile.uuid" from snapshot %q: %w`, snapVol.name, err)
 	}
 
-	// Prefix snapshot clone with to allow distinguishing it from regular volumes.
+	// Prefix snapshot clone with powerStoreMountableSnapshotPrefix to allow distinguishing it from regular volumes.
 	cloneName := powerStoreMountableSnapshotPrefix + snapUUID
 
 	return NewVolume(d, d.name, snapVol.volType, snapVol.contentType, cloneName, snapVol.config, d.config), nil
