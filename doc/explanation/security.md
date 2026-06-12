@@ -187,7 +187,11 @@ For additional logging methods, consult the {ref}`Logging <howto-security-harden
 
 ## Related topics
 
-{{security_how}}
+How-to guides:
+
+- {ref}`howto-security-harden`
+- {ref}`server-expose`
+- {ref}`howto-security-events`
 
 Explanation:
 
