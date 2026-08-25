@@ -1,17 +1,11 @@
 (disaster-recovery-replication)=
 # How to perform disaster recovery with storage replication
 
-To enable disaster recovery, set up a secondary LXD deployment in a different location that can take over running workloads if a non-clustered LXD server or an entire cluster goes offline or becomes unreachable.
-
-If such an incident occurs, you can rely on the storage layer that replicates all instances and custom volumes to the secondary location. You can then consolidate the storage layer and recover the resources to make them available to
-your secondary deployment (see {ref}`disaster-recovery`).
-
+Disaster recovery 
 This requires not only two separate LXD deployments, but also storage replication configuration for the respective storage array.
 
 ```{admonition} When this applies
 :class: note
-Recovery with storage replication is only possible when using remote {ref}`storage-drivers` which support volume recovery (see {ref}`storage-drivers-features`). Configuring replication on the storage array is out of scope for LXD and highly dependent on
-how each vendor implements replication.
 
 This how-to guide focuses on the steps performed within LXD and mentions storage array requirements where applicable.
 ```
@@ -51,42 +45,24 @@ Once you have configured the connection between the primary and secondary storag
 
 Some vendors (such as Dell) use a concept called replication consistency group (RCG), which allows consistent replication of a group of volumes. An RCG can contain an instance's volume along with all of its attached custom volumes. Other vendors might use different concepts.
 
-(disaster-recovery-replication-limitations)=
-### Known storage array limitations
-
-When setting up replication, consider the following limitations:
-
-(disaster-recovery-replication-limitations-powerflex)=
-#### PowerFlex
-
-Cannot replicate and recover volumes with snapshots
-: In {ref}`PowerFlex <storage-powerflex>`, a volume's snapshot appears as its own volume but is still logically connected to its parent volume (vTree).
-  When replicating a volume inside a RCG, its snapshots are not replicated; this causes inconsistencies on the secondary location.
-  A volume's snapshot can be replicated but will be placed inside a new vTree, losing the logical relation to its parent volume.
-  During recovery, LXD notices this inconsistency and raises an error.
-
-(disaster-recovery-replication-cephrdb)=
-#### Ceph RBD
-
-Cannot use journaling mode
-: On {ref}`Ceph RBD <storage-ceph>` storage arrays, it's possible to configure mirroring using either journaling or snapshot mode.
-  However, with LXD, only snapshot mode is supported. This is because the volumes need to be mapped to the host for read access during recovery, which might not be possible due to missing kernel features.
-
 (disaster-recovery-replication-verify)=
 ## Verify replication
 
 After setting up storage replication, confirm that the primary location's volumes are successfully replicated to the secondary location.
 
-```{admonition} Check replication regularly
+```{admonition}
 :class: important
 
-For recovery, it's essential that replication is running consistently, so be sure to check this regularly. If the replication fails to run, you are at risk of losing data whenever the primary location experiences an outage.
+Check replication regularly.
+For recovery, it's essential that replication is running consistently.
+If the replication fails to run, you are at risk of losing data whenever the primary location experiences an outage.
 ```
 
 (disaster-recovery-replication-promote)=
 ## Promote secondary location after disaster
 
-If the primary location becomes unreachable, the secondary location can be promoted to become the new source of truth. The method to promote the secondary storage array depends on the storage vendor. For links to vendor guides, see: {ref}`disaster-recovery-replication-setup`.
+If the primary location becomes unreachable, the secondary location can be promoted to become the new source of truth.
+The method to promote the secondary storage array depends on the storage vendor. For links to vendor guides, see: {ref}`disaster-recovery-replication-setup`.
 
 ```{admonition} Potential data loss
 :class: important
