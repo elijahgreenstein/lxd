@@ -29,16 +29,20 @@ The recommended way to install LXD is its [snap package](https://snapcraft.io/lx
 
 ### Install
 
-Use this command to install LXD from the recommended {ref}`default snap track <ref-snap-tracks-default>` (currently {{current_lts_track}}):
+Use this command to install LXD from the {ref}`latest snap track <ref-snap-track-feature>` (currently {{current_feature_track}}), which corresponds to this version of the documentation:
 
 ```bash
-sudo snap install lxd
+sudo snap install lxd --channel=latest
+```
+
+```{important}
+Feature releases are **not recommended for production use**, due to their frequent changes to the API and database. In a production environment, use an {ref}`LTS release <ref-releases-lts>`. The most recent LTS release is {{current_lts_track}}, and the corresponding documentation for that release is available as the [`default` version](https://canonical.com/lxd/docs/default/).
 ```
 
 If you are installing LXD on a {ref}`cluster member <exp-clusters>`, add the `--cohort="+"` flag to {ref}`keep cluster members synchronized <howto-snap-updates-sync>` to the same snap version:
 
 ```bash
-sudo snap install lxd --cohort="+"
+sudo snap install lxd --channel=latest/stable --cohort="+"
 ```
 
 Next, follow the {ref}`installing-snap-post` steps below.
@@ -46,21 +50,23 @@ Next, follow the {ref}`installing-snap-post` steps below.
 (installing-snap-channel)=
 #### Optionally specify a channel
 
-Channels correspond to different {ref}`LXD releases <ref-releases>`. When unspecified, the LXD snap defaults to the most recent `stable` LTS, which is recommended for most use cases.
-
-To specify a different channel, add the `--channel` flag at installation:
+Channels correspond to different {ref}`LXD releases <ref-releases>`. When unspecified, the LXD snap defaults to the most recent `stable` LTS, which is recommended for most use cases:
 
 ```bash
-sudo snap install lxd --channel=<target channel> [--cohort="+"]
+sudo snap install lxd
 ```
 
-For example, to use the `6/stable` channel, run:
+```{note}
+This version of the documentation (`latest`) includes features that are not available in the stable LTS.
+```
+
+To specify a different channel and risk level, add the `--channel` flag at installation:
 
 ```bash
-sudo snap install lxd --channel=6/stable
+sudo snap install lxd --channel=<target_channel>/<risk_level> [--cohort="+"]
 ```
 
-For details about LXD snap channels, see: {ref}`ref-snap-channels`.
+For details about LXD snap channels and risk levels, see {ref}`ref-snap`.
 
 (installing-snap-post)=
 ### Post-installation

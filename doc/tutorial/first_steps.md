@@ -24,15 +24,17 @@ The MicroCloud setup process installs and initializes LXD. Thus, you can skip th
 
 This section of the tutorial assumes that you have the `snap` packaging system available on your system, which is the recommended way to install and update LXD.
 
-To install LXD using `snap`, run:
+To install the latest feature release of LXD using `snap` (which corresponds to this version of the documentation), run:
 
 ```bash
-sudo snap install lxd
+sudo snap install lxd --channel=latest
 ```
 
-```{admonition} If snap is not installed or not supported
-:class: note
+```{important}
+Feature releases are **not recommended for production use**, due to their frequent changes to the API and database. This version of the documentation (`latest`) corresponds to the {ref}`latest feature release <ref-releases-feature>` (currently {{current_feature_track}}), but an {ref}`LTS release <ref-releases-lts>` is recommended for use in a production environment (the most recent LTS release is  {{current_lts_track}}).
+```
 
+```{note}
 If you see an error message indicating that `snap` is not installed, visit the {ref}`Snap installation documentation <snap:tutorials-install-the-daemon-index>` and follow the instructions there to install it.
 
 If you use a Linux distribution that does not support `snap`, see {ref}`installing-other` to install LXD by other means if possible, then skip to the {ref}`next section <tutorial-adduser>` of this tutorial.
