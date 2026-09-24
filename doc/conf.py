@@ -357,7 +357,7 @@ myst_url_schemes = {
     'swagger': swagger_url_scheme,
 }
 
-remove_from_toctrees = ['reference/manpages/lxc/*.md']
+remove_from_toctrees = ['reference/manpages/lxc/*.md', 'reference/manpages/microcloud/*.md]
 
 # Download and link swagger-ui files
 if not os.path.isdir('.sphinx/deps/swagger-ui'):
@@ -392,6 +392,27 @@ else:
 os.makedirs('.sphinx/deps/manpages', exist_ok=True)
 if os.path.isfile(lxc):
     subprocess.run([lxc, 'manpage', '.sphinx/deps/manpages/', '--format=md'],
+                   check=True)
+else:
+    print('No man page content generated.')
+
+# Find path microcloud client
+
+if os.environ.get('LOCAL_SPHINX_BUILD') == 'True':
+    path = str(subprocess.check_output(['go', 'env', 'GOPATH'], encoding='utf-8').strip())
+    microcloud = os.path.join(path, 'bin', 'microcloud')
+    if os.path.isfile(microcloud):
+        print('Using ' + microcloud + ' to generate man pages.')
+    else:
+        print('Cannot find microcloud in ' + microcloud)
+        sys.exit(2)
+else:
+    microcloud = '../microcloud.bin'
+
+# Generate microcloud man pages content
+
+if os.path.isfile(lxc):
+    subprocess.run([microcloud, 'manpage', '.sphinx/deps/manpages/', '--format=md'],
                    check=True)
 else:
     print('No man page content generated.')
