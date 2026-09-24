@@ -33,6 +33,16 @@ The DevLXD API allows instances to communicate with their host over a Unix socke
 DevLXD API for instances <dev-lxd>
 ```
 
+## MicroCloud Cluster Manager API
+
+The MicroCloud Cluster Manager API can be used to communicate with the Cluster Manager backend.
+
+```{toctree}
+:maxdepth: 1
+
+MicroCloud Cluster Manager API <cluster-manager-api>
+```
+
 ## Related topics
 
 {{server_how}}
