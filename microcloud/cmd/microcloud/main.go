@@ -61,6 +61,7 @@ func main() {
 	app.PersistentFlags().BoolVar(&commonCmd.FlagNoColor, "no-color", false, "Disable colorization of the CLI")
 
 	app.SetVersionTemplate("{{.Version}}\n")
+	commonCmd.cmd = app
 
 	// Don't display the --state-dir flag in the help output.
 	// It is used by the snaps "microcloud" wrapper command but never by the user directly.
@@ -108,6 +109,9 @@ func main() {
 
 	var cmdClusterManager = cmdClusterManager{common: &commonCmd}
 	app.AddCommand(cmdClusterManager.command())
+
+	var cmdManpage = cmdManpage{common: &commonCmd}
+	app.AddCommand(cmdManpage.command())
 
 	app.InitDefaultHelpCmd()
 
