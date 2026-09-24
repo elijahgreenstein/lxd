@@ -27,7 +27,7 @@ type CmdControl struct {
 
 func main() {
 	// Only root should run this
-	if os.Geteuid() != 0 {
+	if os.Geteuid() != 0 && !(len(os.Args) > 1 && os.Args[1] == "manpage") {
 		fmt.Fprintln(os.Stderr, "This must be run as root")
 		os.Exit(1)
 	}
