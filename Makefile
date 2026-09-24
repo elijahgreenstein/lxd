@@ -74,6 +74,11 @@ client:
 	go install -v -trimpath $(COVER) $(DEBUG) ./lxc
 	@echo "LXD $@ built successfully"
 
+.PHONY: microcloud-client
+microcloud-client:
+	go install -C microcloud -v -trimpath ./cmd/microcloud
+	@echo "MicroCloud client built successfully"
+
 .PHONY: lxd-agent
 lxd-agent:
 	CGO_ENABLED=0 go install -v -trimpath $(COVER) -tags agent,netgo ./lxd-agent
