@@ -82,10 +82,10 @@ pymarkdownlnt-install:
 client:
 	cd .. && $(MAKE) -f Makefile client
 
-microcloud-client:
-	cd .. && $(MAKE) -f Makefile microcloud-client
+#microcloud-client:
+#	cd .. && $(MAKE) -f Makefile microcloud-client
 
-install: $(VENVDIR) client microcloud-client
+install: $(VENVDIR) client #microcloud-client
 
 run: install
 	export LOCAL_SPHINX_BUILD=True && . $(VENV) && sphinx-autobuild -b dirhtml --host $(SPHINX_HOST) --port $(SPHINX_PORT) "$(SOURCEDIR)" "$(BUILDDIR)" --ignore '$(SPHINXDIR)/deps/manpages/*' $(SPHINXOPTS) $(SPHINX_AUTOBUILD_OPTS)
