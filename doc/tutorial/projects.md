@@ -54,7 +54,7 @@ lxc ls
 
 We should expect to see output similar to this:
 
-```bash
+```none
 +----------------+---------+------------------------+-------------------------------------------------+-----------------+-----------+
 |      NAME      |  STATE  |          IPV4          |                      IPV6                       |      TYPE       | SNAPSHOTS |
 +----------------+---------+------------------------+-------------------------------------------------+-----------------+-----------+
@@ -66,22 +66,23 @@ We should expect to see output similar to this:
 
 ## Listing projects
 
-Sometimes you don’t know which project you want to work in, so LXD allows you to list the projects we have.
-
-Lets list our projects so that we can see our `client-website` project in relation to the default project:
+Sometimes you don’t know which project you want to work in, so LXD allows you to list the projects we have:
 
 ```bash
 lxc project ls
 ```
 
 You should see output that looks like this:
-+--------------------------+--------+----------+-----------------+-----------------+----------+---------------+-----------------------------------------------------------------------+---------+
-|           NAME           | IMAGES | PROFILES | STORAGE VOLUMES | STORAGE BUCKETS | NETWORKS | NETWORK ZONES |                              DESCRIPTION                              | USED BY |
-+--------------------------+--------+----------+-----------------+-----------------+----------+---------------+-----------------------------------------------------------------------+---------+
-| client-website           | YES    | YES      | YES             | YES             | NO       | NO            |                                                                       | 14      |
-+--------------------------+--------+----------+-----------------+-----------------+----------+---------------+-----------------------------------------------------------------------+---------+
-| default (current)        | YES    | YES      | YES             | YES             | YES      | YES           | Default LXD project                                                   | 50      |
-+--------------------------+--------+----------+-----------------+-----------------+----------+---------------+-----------------------------------------------------------------------+---------+
+
+```none
++--------------------------+--------+----------+-----------------+-----------------+----------+---------------+---------------------+---------+
+|           NAME           | IMAGES | PROFILES | STORAGE VOLUMES | STORAGE BUCKETS | NETWORKS | NETWORK ZONES |     DESCRIPTION     | USED BY |
++--------------------------+--------+----------+-----------------+-----------------+----------+---------------+---------------------+---------+
+| client-website (current) | NO     | NO       | YES             | YES             | NO       | NO            |                     | 4       |
++--------------------------+--------+----------+-----------------+-----------------+----------+---------------+---------------------+---------+
+| default                  | YES    | YES      | YES             | YES             | YES      | YES           | Default LXD project | 8       |
++--------------------------+--------+----------+-----------------+-----------------+----------+---------------+---------------------+---------+
+```
 
 By default, `lxc` commands affect the current project, which is the project with `(current)` after its name.
 The `default` project is the project that LXD uses for resources (such as containers, profiles, and images) that do not belong to any other project.
@@ -90,46 +91,58 @@ The `default` project is the project that LXD uses for resources (such as contai
 
 At this point lets reflect on how our project behaves in relation to the other projects by experimenting with the ways that we can list instances.
 
-Let’s switch back to the default project (this is the project that LXD uses normally).
+Let’s switch back to the default project (this is the project that LXD uses normally), and create a new container:
 
 ```bash
 lxc project switch default
-```
-
-To prove that we can create a container of the same name as one in another project, lets create another `webserver` container:
-
-```bash
 lxc launch ubuntu:26.04 webserver
 ```
 
-Now lets list our containers in the current `default` project:
+You'll encounter an error message:
+
+```none
+TODO
+```
+
+Since we created `client-website` with `{config:option}`project-features:features.profiles` set to `false`, both projects use the same profile with the same bridged network, `lxdbr0`.
+This means that we can create instances with the same name, one in each project, but they cannot be running at the same time.
+
+Let's list instances in the current `default` project:
 
 ```bash
 lxc ls
 ```
 
-You should expect to see a list of all of your existing containers, including the webserver we just created. Importantly, however, the list should not contain the two client-website containers we created earlier.
+You should expect to see a list of instances that includes the stopped `webcontainer` we just created.
+You should *not* see the two `client-website` containers we created earlier.
 
-TODO
+```none
++---------------+---------+----------------------+-----------------------------------------------+-----------+-----------+
+|     NAME      |  STATE  |         IPV4         |                     IPV6                      |   TYPE    | SNAPSHOTS |
++---------------+---------+----------------------+-----------------------------------------------+-----------+-----------+
+| new-container | RUNNING | 10.176.69.184 (eth0) | fd42:f773:f0bd:df9f:216:3eff:fec5:3e88 (eth0) | CONTAINER | 0         |
++---------------+---------+----------------------+-----------------------------------------------+-----------+-----------+
+```
 
-Now lets list the containers in our client-website project, but without switching into it.
+Now let's list the instances in our `client-website` project, but without switching into it:
 
 ```bash
 lxc ls --project client-website
 ```
 
-This should give you the output:
+You should see the `dbserver` and `webserver` containers:
 
 TODO
 
-You can see that we now have two containers called `webserver`, but with different IP addresses and inside different projects.
+You can see that we have two containers named `webserver` inside different projects, but, due to the shared profile, they cannot be running at the same time.
+Next, we will create a more isolated project in which we can run an instance with the same name as an instanc in another project.
 
 ## Creating further isolated projects
 
-So far we have created a project that allowed containers of the same name to be created in different projects.
+So far we have seen how a project can be used to organize instances.
 However both the `default` and `client-website` projects shared the same profiles and image libraries.
 This means that the `default` profile in the `client-website` project is the same as the `default` profile in the `default` project.
-But there are scenarios in which we may want to further isolate a project such that profile and image names are not shared beyond it.
+But there are scenarios in which we may want to further isolate a project such that it does not share profiles or image names.
 
 ### A new client project
 
@@ -148,7 +161,6 @@ lxc project create client2-website
 ```
 
 Now lets create a container in the new project.
-
 We can use the `--project` flag to create a resource in the specified project, even when another project is "current."
 
 ```
@@ -165,6 +177,7 @@ Error: Failed container creation: Create container: Create LXC container: Invali
 Continue to the next step to find out what is going wrong!
 
 ## Setting up a new project profile
+
 In the previous step we created a new isolated project and then tried to create a new container inside it.
 Unfortunately we were unable to because we got a `No root device could be found` error.
 This is because the `default` profile within the new project has not been configured yet.
@@ -180,24 +193,23 @@ We can use the `--project` flag again, to specify the `default` project.
 ```{terminal}
 lxc profile show default --project default
 
-config: {}
+name: default
 description: Default LXD profile
+config: {}
 devices:
   eth0:
     name: eth0
-    nictype: bridged
-    parent: lxdbr0
+    network: lxdbr0
     type: nic
   root:
     path: /
     pool: default
     type: disk
-name: default
 used_by:
-- /1.0/containers/tutorials
-- /1.0/containers/webserver?project=client-website
-- /1.0/containers/dbserver?project=client-website
-- /1.0/containers/webserver
+- /1.0/instances/webserver?project=client-website
+- /1.0/instances/dbserver?project=client-website
+- /1.0/instances/new-container
+project: default
 ```
 
 Now let's look at the `default` profile in the `client2-website` project:
@@ -207,11 +219,12 @@ Use the `--project` flag again:
 ```{terminal}
 lxc profile show default --project client2-website
 
-config: {}
-description: Default LXD profile for project client2-website
-devices: {}
 name: default
+description: Default LXD profile for project client2-website
+config: {}
+devices: {}
 used_by: []
+project: client2-website
 ```
 
 We can see that the missing configuration is for the devices section, specifically the `nic` and `disk` devices.
@@ -241,19 +254,32 @@ lxc launch ubuntu:26.04 webserver --project client2-website
 lxc launch ubuntu:26.04 dbserver --project client2-website
 ```
 
-And check they are created:
+And check that they are created:
 
-```bash
+```{terminal}
 lxc ls --project client2-website
-```
 
-TODO
++-----------+---------+------+------+-----------+-----------+
+|   NAME    |  STATE  | IPV4 | IPV6 |   TYPE    | SNAPSHOTS |
++-----------+---------+------+------+-----------+-----------+
+| dbserver  | RUNNING |      |      | CONTAINER | 0         |
++-----------+---------+------+------+-----------+-----------+
+| webserver | RUNNING |      |      | CONTAINER | 0         |
++-----------+---------+------+------+-----------+-----------+
+```
 
 ## Moving containers between projects
 
 So far we have seen how instances can be grouped together and isolated to varying levels.
 The last feature we can explore is how to move an instance from one project to another.
 Lets move `dbserver` from the `client-website` project into the `client2-website` project.
+First we need to stop the container:
+
+```bash
+lxc stop dbserver --project client-website
+```
+
+Now we can try to move it:
 
 ```bash
 lxc move dbserver dbserver --project client-website --target-project client2-website
@@ -262,7 +288,7 @@ lxc move dbserver dbserver --project client-website --target-project client2-web
 But we have got an error again:
 
 ```bash
-Error: Add container info to the database: This container already exists
+Error: Migration operation failure: Failed creating instance record: Instance "dbserver" already exists
 ```
 
 This is because you cannot have two instances with the same name in the same project, and we already have a container named `dbserver` in the `client2-website` project.
@@ -274,19 +300,29 @@ We’ll choose the latter option in this tutorial.
 lxc move dbserver dbserver2 --project client-website --target-project client2-website
 ```
 
-Now lets confirm that the container has been moved:
+Now let's confirm that the container has been moved:
 
-```
+```{terminal}
 lxc ls --project client2-website
-```
 
-TODO
++-----------+---------+------+------+-----------+-----------+
+|   NAME    |  STATE  | IPV4 | IPV6 |   TYPE    | SNAPSHOTS |
++-----------+---------+------+------+-----------+-----------+
+| dbserver  | RUNNING |      |      | CONTAINER | 0         |
++-----------+---------+------+------+-----------+-----------+
+| dbserver2 | STOPPED |      |      | CONTAINER | 0         |
++-----------+---------+------+------+-----------+-----------+
+| webserver | RUNNING |      |      | CONTAINER | 0         |
++-----------+---------+------+------+-----------+-----------+
+```
 
 ## Cleaning up
 
 As a final task, lets clean up the instances and projects we created.
 
 We cannot remove a project that is in use, so we need to remove the instances and images first.
+
+Let's delete the instances in the `client2-website` project:
 
 ```bash
 lxc delete dbserver -f --project client2-website
@@ -306,15 +342,24 @@ For each image do:
 lxc image delete <fingerprint> --project client2-website
 ```
 
-Then delete the project
+Then delete the project:
 
 ```bash
 lxc project delete client2-website
 ```
 
-Repeat these steps for the `client-website` project.
+You can also use the `--force` flag to delete a project:
+
+```bash
+lxc project delete client-website --force
+```
+
+This also deletes the instances in the `client-website` project.
+However, because we created `client-website` with {config:option}`project-features:features.images` set to `false`, the project used images and from the `default` project; as a result, the images were not deleted.
 
 (tutorial-projects-next)=
 ## Next steps
 
-Now that you've completed your first steps with LXD, you have a general idea of how LXD works. Next, read up on important concepts in the {ref}`explanation` section and check out more advanced use cases in our {ref}`howtos`. You can also find a wealth of information in the {ref}`reference` section, including the {doc}`../api`.
+Now that you've completed your first steps with LXD, you have a general idea of how LXD works.
+Next, read up on important concepts in the {ref}`explanation` section and check out more advanced use cases in our {ref}`howtos`.
+You can also find a wealth of information in the {ref}`reference` section, including the {doc}`../api`.
