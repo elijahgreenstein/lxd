@@ -313,3 +313,8 @@ lxc project delete client2-website
 ```
 
 Repeat these steps for the `client-website` project.
+
+(tutorial-projects-next)=
+## Next steps
+
+Now that you've completed your first steps with LXD, you have a general idea of how LXD works. Next, read up on important concepts in the {ref}`explanation` section and check out more advanced use cases in our {ref}`howtos`. You can also find a wealth of information in the {ref}`reference` section, including the {doc}`../api`.
