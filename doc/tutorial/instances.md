@@ -437,18 +437,9 @@ Push the file back to the container:
 lxc file push helloworld.txt first/root/helloworld.txt
 ```
 
-Now again view the content of the file on the container:
-
-```bash
-lxc exec first -- cat helloworld.txt
-```
-
-You should see the line that you added:
+Now again view the content of the file on the container, and you should see the line that you added:
 
 ```{terminal}
-:user: your-user
-:host: host-system
-
 lxc exec first -- cat helloworld.txt
 
 Hello world!
@@ -556,47 +547,6 @@ When you no longer need a snapshot, you can delete it. In the {guilabel}`Snapsho
 
 To learn more about instance snapshots, see: {ref}`instances-snapshots`.
 
-````
-`````
-
-(tutorial-delete)=
-## Stop and delete all instances
-
-```{warning}
-Deleting an instance is irreversible. All snapshots and other information associated with the instance will be lost.
-```
-
-Now let's clean up the instances we created.
-
-`````{tabs}
-````{group-tab} CLI
-
-You must first stop an instance before you can delete it:
-
-```bash
-lxc stop ubuntu-vm
-lxc delete ubuntu-vm
-```
-
-You can also use the `--force` flag to delete an instance without stopping it:
-
-```bash
-lxc delete ubuntu-desktop --force
-```
-
-You can also stop and delete multiple instances at once:
-
-```bash
-lxc stop first second
-lxc delete first second
-```
-
-````
-% End group-tab CLI
-
-````{group-tab} UI
-
-Click the checkbox to the left of each instance you want to delete. Use the buttons that appear at the top of the page to first stop then delete all checked instances.
 ````
 `````
 
