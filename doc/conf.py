@@ -113,10 +113,7 @@ html_context = {
 
 html_extra_path = ['_extra']
 
-# Enables the pencil icon to edit pages on GitHub, shown at the top of each page
-html_theme_options = {
-    'source_edit_link': html_context['github_url']
-}
+html_theme = 'ulwazi'
 
 #######################
 # Sitemap configuration: https://sphinx-sitemap.readthedocs.io/
@@ -236,8 +233,7 @@ linkcheck_retries = 3
 ########################
 
 extensions = [
-    'canonical_sphinx',
-    'notfound.extension',
+    'ulwazi',
     'sphinx_design',
     'sphinx_reredirects',
     'sphinx_tabs.tabs',

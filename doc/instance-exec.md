@@ -13,8 +13,10 @@ However, it provides a terminal that gives you {ref}`shell access to your instan
 
 ## Run commands inside your instance
 
-````{tabs}
-```{group-tab} CLI
+````{tab-set}
+```{tab-item} CLI
+:sync: cli
+
 To run a single command from the terminal of the host machine, use the [`lxc exec`](lxc_exec.md) command:
 
     lxc exec <instance_name> -- <command>
@@ -23,7 +25,9 @@ For example, enter the following command to update the package list on your cont
 
     lxc exec my-instance -- apt-get update
 ```
-```{group-tab} API
+```{tab-item} API
+:sync: api
+
 Send a POST request to the instance's `exec` endpoint to run a single command from the terminal of the host machine:
 
     lxc query --request POST /1.0/instances/<instance_name>/exec --data '{
@@ -44,8 +48,10 @@ See [`POST /1.0/instances/{name}/exec`](swagger:/instances/instance_exec_post) f
 
 LXD can execute commands either interactively or non-interactively.
 
-````{tabs}
-```{group-tab} CLI
+````{tab-set}
+```{tab-item} CLI
+:sync: cli
+
 In interactive mode, a pseudo-terminal device (PTS) is used to handle input (stdin) and output (stdout, stderr).
 This mode is automatically selected by the CLI if connected to a terminal emulator (and not run from a script).
 To force interactive mode, add either `--force-interactive` or `--mode interactive` to the command.
@@ -54,7 +60,9 @@ In non-interactive mode, pipes are allocated instead (one for each of stdin, std
 This method allows running a command and properly getting separate stdin, stdout and stderr as required by many scripts.
 To force non-interactive mode, add either `--force-noninteractive` or `--mode non-interactive` to the command.
 ```
-```{group-tab} API
+```{tab-item} API
+:sync: api
+
 In both modes, the operation creates a control socket that can be used for out-of-band communication with LXD.
 You can send signals and window sizing information through this socket.
 
@@ -101,8 +109,10 @@ As a result, LXD doesn't know the home directory for the user or the supplementa
 By default, LXD runs commands as `root` (UID 0) with the default group (GID 0) and the working directory set to `/root`.
 You can override the user, group and working directory by specifying absolute values.
 
-````{tabs}
-```{group-tab} CLI
+````{tab-set}
+```{tab-item} CLI
+:sync: cli
+
 You can override the default settings by adding the following flags to the [`lxc exec`](lxc_exec.md) command:
 
 - `--user` - the user ID for running the command
@@ -110,7 +120,9 @@ You can override the default settings by adding the following flags to the [`lxc
 - `--cwd` - the directory in which the command should run
 
 ```
-```{group-tab} API
+```{tab-item} API
+:sync: api
+
 You can override the default settings by adding the following fields to the request data:
 
 - `"user": <user_ID>` - the user ID for running the command
@@ -125,15 +137,18 @@ You can override the default settings by adding the following fields to the requ
 You can pass environment variables to an exec session in the following two ways:
 
 Set environment variables as instance options
-: ````{tabs}
+: ````{tab-set}
+  ```{tab-item} CLI
+  :sync: cli
 
-  ```{group-tab} CLI
   To set the `<ENVVAR>` environment variable to `<value>` in the instance, set the `environment.<ENVVAR>` instance option (see {config:option}`instance-miscellaneous:environment.*`):
 
       lxc config set <instance_name> environment.<ENVVAR>=<value>
   ```
 
-  ```{group-tab} API
+  ```{tab-item} API
+  :sync: api
+
   To set the `<ENVVAR>` environment variable to `<value>` in the instance, set the `environment.<ENVVAR>` instance option (see {config:option}`instance-miscellaneous:environment.*`):
 
       lxc query --request PATCH /1.0/instances/<instance_name> --data '{
@@ -143,7 +158,9 @@ Set environment variables as instance options
       }'
   ```
 
-  ```{group-tab} UI
+  ```{tab-item} UI
+  :sync: ui
+
   To set the `<ENVVAR>` environment variable to `<value>` in the instance, go to the instance detail page, switch to the {guilabel}`Configuration` tab and select {guilabel}`YAML configuration`.
   Then click {guilabel}`Edit instance`.
 
@@ -159,16 +176,19 @@ Set environment variables as instance options
   ````
 
 Pass environment variables to the exec command
-: ````{tabs}
+: ````{tab-set}
+  ```{tab-item} CLI
+  :sync: cli
 
-  ```{group-tab} CLI
   To pass an environment variable to the exec command, use the `--env` flag.
   For example:
 
       lxc exec <instance_name> --env <ENVVAR>=<value> -- <command>
   ```
 
-  ```{group-tab} API
+  ```{tab-item} API
+  :sync: api
+
   To pass an environment variable to the exec command, add an `environment` field to the request data.
   For example:
 
@@ -216,20 +236,26 @@ In addition, LXD sets the following default values (unless they are passed in on
 
 If you want to run commands directly in your instance, run a shell command inside it.
 
-````{tabs}
-```{group-tab} CLI
+````{tab-set}
+```{tab-item} CLI
+:sync: cli
+
 Enter the following command (assuming that the `/bin/bash` command exists in your instance):
 
     lxc exec <instance_name> -- /bin/bash
 ```
-```{group-tab} API
+```{tab-item} API
+:sync: api
+
 Enter the following command (assuming that the `/bin/bash` command exists in your instance):
 
     lxc query --request POST /1.0/instances/<instance_name>/exec --data '{
       "command": [ "/bin/bash" ]
     }'
 ```
-```{group-tab} UI
+```{tab-item} UI
+:sync: ui
+
 Navigate to the instance detail page and switch to the {guilabel}`Terminal` tab to access the shell.
 ```
 ````
@@ -237,18 +263,24 @@ Navigate to the instance detail page and switch to the {guilabel}`Terminal` tab 
 By default, you are logged in as the `root` user.
 If you want to log in as a different user, enter the following command:
 
-````{tabs}
-```{group-tab} CLI
+````{tab-set}
+```{tab-item} CLI
+:sync: cli
+
     lxc exec <instance_name> -- su --login <user_name>
 
 To exit the instance shell, enter `exit` or press {kbd}`Ctrl`+{kbd}`d`.
 ```
-```{group-tab} API
+```{tab-item} API
+:sync: api
+
     lxc query --request POST /1.0/instances/<instance_name>/exec --data '{
       "command": [ "su", "--login", "<user_name>" ]
     }'
 ```
-```{group-tab} UI
+```{tab-item} UI
+:sync: ui
+
     su --login <user_name>
 
 To exit the user shell and go back to the root shell, enter `exit` or press {kbd}`Ctrl`+{kbd}`d`.
