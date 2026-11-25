@@ -40,12 +40,12 @@ doc/            Sphinx documentation
 
 Update these via the listed `make` target instead of editing by hand:
 
-| File | Command |
-|------|---------|
-| `lxd/metadata/configuration.json`, `doc/metadata.txt` | `make update-metadata` |
-| `lxd/auth/entitlements_generated.go`, `lxd/auth/drivers/openfga_model.openfga` | `make update-auth` |
-| `go.mod`, `go.sum`, `tools/go.mod`, `tools/go.sum` | `make update-gomod` |
-| `doc/rest-api.yaml` | `make update-api` |
+| File | Source of truth | Command |
+|------|-----------------|---------|
+| `lxd/metadata/configuration.json`, `doc/metadata.txt` | `// lxdmeta:generate` comments in Go source (and `doc/substitutions.yaml`) | `make update-metadata` |
+| `lxd/auth/entitlements_generated.go` | `lxd/auth/drivers/openfga_model.openfga` | `make update-auth` |
+| `doc/rest-api.yaml` | `swagger:` annotations in `lxd/*.go` | `make update-api` |
+| `go.mod`, `go.sum`, `tools/go.mod`, `tools/go.sum` | -- | `make update-gomod` |
 
 ## Build
 
